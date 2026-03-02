@@ -1,6 +1,82 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, Modal, PluginSettingTab, Setting, AbstractInputSuggest, TFolder } from "obsidian";
 import type PortfolioPlugin from "./main";
 import { TaxaMapping } from "./types";
+
+class CustomPromptModal extends Modal {
+  private plugin: PortfolioPlugin;
+
+  constructor(app: App, plugin: PortfolioPlugin) {
+    super(app);
+    this.plugin = plugin;
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+
+    contentEl.createEl("h2", { text: "Custom Extraction Prompt" });
+    contentEl.createEl("p", {
+      text: "Additional instructions for the AI model. Use this to describe your vault's conventions so the model avoids false positives.",
+      cls: "setting-item-description",
+    });
+
+    const textarea = contentEl.createEl("textarea", {
+      placeholder: 'e.g. Ignore text that looks like citation keys (e.g. "hoffmanTransformativePower2024"). Filenames starting with a number followed by a dot (like "12.15") are note IDs, not entities.',
+    });
+    textarea.value = this.plugin.settings.customPrompt;
+    textarea.style.width = "100%";
+    textarea.style.minHeight = "200px";
+    textarea.style.resize = "vertical";
+    textarea.style.fontFamily = "var(--font-monospace)";
+    textarea.style.fontSize = "13px";
+    textarea.style.padding = "8px";
+
+    const btnRow = contentEl.createDiv();
+    btnRow.style.display = "flex";
+    btnRow.style.justifyContent = "flex-end";
+    btnRow.style.marginTop = "12px";
+
+    const saveBtn = btnRow.createEl("button", { text: "Save", cls: "mod-cta" });
+    saveBtn.addEventListener("click", async () => {
+      this.plugin.settings.customPrompt = textarea.value;
+      await this.plugin.saveSettings();
+      this.close();
+    });
+  }
+
+  onClose() {
+    this.contentEl.empty();
+  }
+}
+
+class FolderSuggest extends AbstractInputSuggest<TFolder> {
+  getSuggestions(query: string): TFolder[] {
+    const lowerQuery = query.toLowerCase();
+    const folders: TFolder[] = [];
+    const seen = new Set<string>();
+
+    this.app.vault.getAllLoadedFiles().forEach((f) => {
+      if (f instanceof TFolder && f.path !== "/") {
+        if (!seen.has(f.path) && f.path.toLowerCase().contains(lowerQuery)) {
+          folders.push(f);
+          seen.add(f.path);
+        }
+      }
+    });
+
+    folders.sort((a, b) => a.path.localeCompare(b.path));
+    return folders.slice(0, 50);
+  }
+
+  renderSuggestion(folder: TFolder, el: HTMLElement): void {
+    el.setText(folder.path);
+  }
+
+  selectSuggestion(folder: TFolder, _evt: MouseEvent | KeyboardEvent): void {
+    this.setValue(folder.path);
+    this.close();
+  }
+}
 
 export class PortfolioSettingTab extends PluginSettingTab {
   plugin: PortfolioPlugin;
@@ -16,10 +92,16 @@ export class PortfolioSettingTab extends PluginSettingTab {
 
     // --- Taxa Mappings ---
     containerEl.createEl("h2", { text: "Taxa Mappings" });
-    containerEl.createEl("p", {
-      text: "Define prefix characters and their target folders. Files starting with a prefix will be auto-moved to the corresponding folder.",
+
+    const attribution = containerEl.createEl("p", {
       cls: "setting-item-description",
     });
+    attribution.appendText("Inspired by ");
+    attribution.createEl("a", {
+      text: "Stowe Boyd's Portfolio knowledge management system",
+      href: "https://www.workings.co/p/portfolio-a-knowledge-base-built",
+    });
+    attribution.appendText(". Define prefix characters and their target folders. Files starting with a prefix will be auto-moved to the corresponding folder.");
 
     const mappingsContainer = containerEl.createDiv("portfolio-taxa-mappings");
     this.renderTaxaMappings(mappingsContainer);
@@ -35,6 +117,23 @@ export class PortfolioSettingTab extends PluginSettingTab {
         this.display();
       })
     );
+
+    // --- Editor ---
+    containerEl.createEl("h2", { text: "Editor" });
+
+    new Setting(containerEl)
+      .setName("Enable taxa suggestions")
+      .setDesc(
+        "Show autocomplete suggestions when typing a taxa prefix character (e.g. @, +, ~). Requires plugin reload."
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.editorSuggestEnabled)
+          .onChange(async (value) => {
+            this.plugin.settings.editorSuggestEnabled = value;
+            await this.plugin.saveSettings();
+          })
+      );
 
     // --- Auto-Move ---
     containerEl.createEl("h2", { text: "Auto-Move" });
@@ -190,6 +289,17 @@ export class PortfolioSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName("Custom extraction prompt")
+      .setDesc(this.plugin.settings.customPrompt
+        ? "Custom instructions configured."
+        : "No custom instructions set.")
+      .addButton((btn) =>
+        btn.setButtonText("Manage").onClick(() => {
+          new CustomPromptModal(this.app, this.plugin).open();
+        })
+      );
+
+    new Setting(containerEl)
       .setName("Test connection")
       .setDesc("Check if Ollama is running and the model is available.")
       .addButton((btn) =>
@@ -290,6 +400,14 @@ export class PortfolioSettingTab extends PluginSettingTab {
         folderInput.style.width = "200px";
         folderInput.addEventListener("change", async () => {
           this.plugin.settings.taxaMappings[index].folder = folderInput.value;
+          await this.plugin.saveSettings();
+        });
+
+        // Attach folder autocomplete
+        const suggest = new FolderSuggest(this.app, folderInput);
+        suggest.onSelect(async (folder) => {
+          folderInput.value = folder.path;
+          this.plugin.settings.taxaMappings[index].folder = folder.path;
           await this.plugin.saveSettings();
         });
 

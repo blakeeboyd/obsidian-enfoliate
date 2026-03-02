@@ -24,15 +24,21 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 16px;
   color: var(--text-muted);
   padding: 2px 6px;
   border-radius: 4px;
+  display: flex;
+  align-items: center;
 }
 
 .portfolio-refresh-btn:hover {
   background: var(--background-modifier-hover);
   color: var(--text-normal);
+}
+
+.portfolio-refresh-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 .portfolio-section {
@@ -41,7 +47,7 @@
 
 .portfolio-section h5 {
   margin: 8px 0 4px 0;
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--text-muted);
@@ -53,14 +59,12 @@
 
 .portfolio-group-label {
   margin: 4px 0 2px 0;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-muted);
 }
 
+/* Suggestion rows: stacked layout */
 .portfolio-suggestion-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   padding: 4px 8px;
   border-radius: 4px;
   margin-bottom: 2px;
@@ -68,6 +72,12 @@
 
 .portfolio-suggestion-row:hover {
   background: var(--background-modifier-hover);
+}
+
+.portfolio-suggestion-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .portfolio-suggestion-info {
@@ -78,6 +88,7 @@
 
 .portfolio-match-text {
   font-weight: 500;
+  font-size: 13px;
 }
 
 .portfolio-clickable {
@@ -89,6 +100,30 @@
   color: var(--text-accent);
 }
 
+.portfolio-suggestion-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.portfolio-meta-chunk {
+  white-space: nowrap;
+  display: inline;
+}
+
+.portfolio-existing-file {
+  color: var(--text-accent);
+  margin-left: 4px;
+}
+
+.portfolio-existing-file svg {
+  width: 11px;
+  height: 11px;
+  display: inline;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+
 .portfolio-match-count {
   font-size: 11px;
   color: var(--text-muted);
@@ -97,7 +132,6 @@
 .portfolio-entity-type {
   font-size: 11px;
   color: var(--text-muted);
-  margin-left: 4px;
 }
 
 .portfolio-low-confidence {
@@ -110,20 +144,43 @@
   display: flex;
   gap: 4px;
   flex-shrink: 0;
+  align-items: center;
 }
 
 .portfolio-action-btn {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
+  background: none;
   border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 2px 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
 }
 
 .portfolio-action-btn:hover {
-  opacity: 0.9;
+  background: var(--background-modifier-hover);
+  color: var(--text-accent);
+}
+
+.portfolio-action-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.portfolio-link-all-btn {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  background: none;
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-muted);
+}
+
+.portfolio-link-all-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
 }
 
 .portfolio-dismiss-btn {
@@ -131,14 +188,20 @@
   border: none;
   cursor: pointer;
   color: var(--text-muted);
-  font-size: 12px;
   padding: 2px 4px;
   border-radius: 4px;
+  display: flex;
+  align-items: center;
 }
 
 .portfolio-dismiss-btn:hover {
   background: var(--background-modifier-hover);
   color: var(--text-normal);
+}
+
+.portfolio-dismiss-btn svg {
+  width: 12px;
+  height: 12px;
 }
 
 .portfolio-empty-state {
@@ -190,20 +253,64 @@
   background: var(--background-modifier-hover);
 }
 
+.portfolio-linked-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.portfolio-linked-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.portfolio-linked-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  align-items: center;
+}
+
 .portfolio-go-btn {
   background: none;
   border: none;
   cursor: pointer;
   color: var(--text-muted);
-  font-size: 14px;
-  padding: 2px 6px;
+  padding: 2px 4px;
   border-radius: 4px;
-  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .portfolio-go-btn:hover {
   background: var(--background-modifier-hover);
   color: var(--text-accent);
+}
+
+.portfolio-go-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.portfolio-unlink-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 2px 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.portfolio-unlink-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-error);
+}
+
+.portfolio-unlink-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 /* Jump Highlight */

@@ -11,6 +11,7 @@ export interface PortfolioSettings {
   ollamaModel: string;
   autoMoveEnabled: boolean;
   createFolderIfMissing: boolean;
+  editorSuggestEnabled: boolean;
   sidebarOpen: boolean;
   statusBarEnabled: boolean;
   aiEnabled: boolean;
@@ -18,6 +19,7 @@ export interface PortfolioSettings {
   blocklist: string[];
   highlightOnJump: boolean;
   highlightColor: string;
+  customPrompt: string;
 }
 
 export interface ExtractedEntity {

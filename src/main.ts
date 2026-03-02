@@ -19,6 +19,7 @@ const DEFAULT_SETTINGS: PortfolioSettings = {
   ollamaModel: "llama3.2:3b",
   autoMoveEnabled: true,
   createFolderIfMissing: true,
+  editorSuggestEnabled: true,
   sidebarOpen: false,
   statusBarEnabled: true,
   aiEnabled: true,
@@ -26,18 +27,23 @@ const DEFAULT_SETTINGS: PortfolioSettings = {
   blocklist: [],
   highlightOnJump: true,
   highlightColor: "",
+  customPrompt: "",
 };
 
 export default class PortfolioPlugin extends Plugin {
   settings: PortfolioSettings = DEFAULT_SETTINGS;
   private statusBarEl: HTMLElement | null = null;
+  private taxaSuggest: TaxaSuggest | null = null;
 
   async onload() {
     await this.loadSettings();
     this.addSettingTab(new PortfolioSettingTab(this.app, this));
     this.registerCommands();
     this.registerAutoMover();
-    this.registerEditorSuggest(new TaxaSuggest(this.app, this.settings));
+    if (this.settings.editorSuggestEnabled) {
+      this.taxaSuggest = new TaxaSuggest(this.app, this.settings);
+      this.registerEditorSuggest(this.taxaSuggest);
+    }
     this.registerView(
       SUGGESTIONS_VIEW_TYPE,
       (leaf) => new SuggestionsView(leaf, this)

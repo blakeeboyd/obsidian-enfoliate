@@ -1,4 +1,4 @@
-import { ItemView, Notice, TFile, WorkspaceLeaf, MarkdownView } from "obsidian";
+import { ItemView, Notice, TFile, WorkspaceLeaf, MarkdownView, setIcon } from "obsidian";
 import { StateEffect, StateField } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 import type PortfolioPlugin from "../main";
@@ -57,7 +57,7 @@ export class SuggestionsView extends ItemView {
   }
 
   getIcon(): string {
-    return "link";
+    return "square-pilcrow";
   }
 
   async onOpen() {
@@ -244,7 +244,7 @@ export class SuggestionsView extends ItemView {
 
     // Header
     const header = container.createDiv("portfolio-suggestions-header");
-    const titleEl = header.createEl("h4", { text: "Suggestions" });
+    const titleEl = header.createEl("h4", { text: "Portfolio Suggestions" });
     if (isSelection) {
       titleEl.createSpan({
         text: " (selection)",
@@ -253,10 +253,10 @@ export class SuggestionsView extends ItemView {
     }
 
     const refreshBtn = header.createEl("button", {
-      text: "\u21BB",
       cls: "portfolio-refresh-btn",
       attr: { "aria-label": "Refresh" },
     });
+    setIcon(refreshBtn, "refresh-cw");
     refreshBtn.addEventListener("click", () => {
       this.llmEntities = [];
       this.refresh();
@@ -281,7 +281,7 @@ export class SuggestionsView extends ItemView {
       section.createEl("h5", { text: "Unlinked Mentions" });
 
       // Group by taxon
-      const grouped = groupByTaxon(unlinkedMatches);
+      const grouped = groupByTaxon(unlinkedMatches, this.plugin.settings.taxaMappings);
       for (const [taxon, matches] of grouped) {
         const groupEl = section.createDiv("portfolio-taxa-group");
         groupEl.createEl("h6", {
@@ -369,7 +369,10 @@ export class SuggestionsView extends ItemView {
   ) {
     const row = container.createDiv("portfolio-suggestion-row");
 
-    const info = row.createDiv("portfolio-suggestion-info");
+    // Top line: name + action buttons
+    const top = row.createDiv("portfolio-suggestion-top");
+
+    const info = top.createDiv("portfolio-suggestion-info");
     const nameSpan = info.createSpan({
       text: match.alias,
       cls: "portfolio-match-text portfolio-clickable",
@@ -377,18 +380,15 @@ export class SuggestionsView extends ItemView {
     nameSpan.addEventListener("click", () => {
       this.jumpToOccurrence(match.filePath, match.positions, fullContent, noteFile, match.matchText.length);
     });
-    info.createSpan({
-      text: ` (${match.positions.length}${match.positions.length > 1 ? " mentions" : " mention"})`,
-      cls: "portfolio-match-count",
-    });
 
-    const actions = row.createDiv("portfolio-suggestion-actions");
+    const actions = top.createDiv("portfolio-suggestion-actions");
 
-    // Link button
+    // Link button (replace first occurrence)
     const linkBtn = actions.createEl("button", {
-      text: "Link",
       cls: "portfolio-action-btn",
+      attr: { "aria-label": "Link" },
     });
+    setIcon(linkBtn, "replace");
     linkBtn.addEventListener("click", async () => {
       await this.linkUnlinkedMatch(match, noteFile, false);
     });
@@ -396,35 +396,43 @@ export class SuggestionsView extends ItemView {
     // Link all button (if multiple occurrences)
     if (match.positions.length > 1) {
       const linkAllBtn = actions.createEl("button", {
-        text: "Link all",
         cls: "portfolio-action-btn",
+        attr: { "aria-label": "Link all" },
       });
+      setIcon(linkAllBtn, "replace-all");
       linkAllBtn.addEventListener("click", async () => {
         await this.linkUnlinkedMatch(match, noteFile, true);
       });
     }
 
-    // Dismiss button
+    // Ignore button (blocklist permanently)
+    const ignoreBtn = actions.createEl("button", {
+      cls: "portfolio-action-btn",
+      attr: { "aria-label": "Always ignore" },
+    });
+    setIcon(ignoreBtn, "eye-off");
+    ignoreBtn.addEventListener("click", async () => {
+      this.plugin.settings.blocklist.push(match.alias);
+      await this.plugin.saveSettings();
+      this.refresh();
+    });
+
+    // Dismiss button (hide for this session)
     const dismissBtn = actions.createEl("button", {
-      text: "\u2715",
       cls: "portfolio-dismiss-btn",
       attr: { "aria-label": "Dismiss" },
     });
+    setIcon(dismissBtn, "x");
     dismissBtn.addEventListener("click", () => {
       this.dismissed.add(match.filePath);
       this.refresh();
     });
 
-    // Always ignore button
-    const ignoreBtn = actions.createEl("button", {
-      text: "Ignore",
-      cls: "portfolio-ignore-btn",
-      attr: { "aria-label": "Always ignore" },
-    });
-    ignoreBtn.addEventListener("click", async () => {
-      this.plugin.settings.blocklist.push(match.alias);
-      await this.plugin.saveSettings();
-      this.refresh();
+    // Bottom line: metadata
+    const meta = row.createDiv("portfolio-suggestion-meta");
+    meta.createSpan({
+      text: `(${match.positions.length} ${match.positions.length > 1 ? "mentions" : "mention"})`,
+      cls: "portfolio-meta-chunk",
     });
   }
 
@@ -464,6 +472,56 @@ export class SuggestionsView extends ItemView {
     this.refresh();
   }
 
+  private async unlinkTaxaFromNote(link: string, displayName: string, noteFile: TFile) {
+    const content = await this.app.vault.read(noteFile);
+
+    // Match wikilinks: [[link]], [[link|alias]], [[link|anything]]
+    const escapedLink = link.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`\\[\\[${escapedLink}(\\|[^\\]]*)?\\]\\]`, "g");
+
+    const newContent = content.replace(pattern, (match) => {
+      // Extract the display text: use alias if present, otherwise the link itself
+      const aliasMatch = match.match(/\|([^\]]*)\]\]$/);
+      return aliasMatch ? aliasMatch[1] : link;
+    });
+
+    if (newContent === content) {
+      new Notice(`No wikilinks to ${displayName} found`);
+      return;
+    }
+
+    const count = (content.match(pattern) || []).length;
+    await this.app.vault.modify(noteFile, newContent);
+    new Notice(`Unlinked ${displayName} (${count} ${count > 1 ? "occurrences" : "occurrence"})`);
+    this.plugin.updateStatusBar();
+    this.refresh();
+  }
+
+  private findExistingTaxaFile(
+    entityName: string,
+    taxon: TaxaMapping
+  ): TFile | null {
+    const taxaFiles = this.app.vault.getMarkdownFiles().filter(
+      (f) => f.path.startsWith(taxon.folder + "/")
+    );
+    const lowerName = entityName.toLowerCase();
+
+    // Exact match: file basename (without prefix) matches entity name
+    for (const f of taxaFiles) {
+      const nameWithoutPrefix = stripPrefix(f.basename, taxon).toLowerCase();
+      if (nameWithoutPrefix === lowerName) return f;
+    }
+
+    // Partial match: entity name appears as a word in a filename (e.g., "Holiday" → "@Ryan Holiday")
+    for (const f of taxaFiles) {
+      const nameWithoutPrefix = stripPrefix(f.basename, taxon).toLowerCase();
+      const words = nameWithoutPrefix.split(/\s+/);
+      if (words.some((w) => w === lowerName)) return f;
+    }
+
+    return null;
+  }
+
   private renderLlmEntity(
     container: HTMLElement,
     entity: ExtractedEntity,
@@ -476,19 +534,31 @@ export class SuggestionsView extends ItemView {
     );
     if (!taxon) return;
 
-    // Collect positions of entity text in content
+    // Check if a taxa file already exists for this entity
+    const existingFile = this.findExistingTaxaFile(entity.suggestedName, taxon);
+
+    // Collect positions of entity text in content, skipping matches inside wikilinks
     const entityPositions: number[] = [];
     let searchFrom = 0;
     while (true) {
       const idx = fullContent.indexOf(entity.text, searchFrom);
       if (idx === -1) break;
-      entityPositions.push(idx);
+      // Check if this position is inside a wikilink by looking for [[ before and ]] after
+      const before = fullContent.lastIndexOf("[[", idx);
+      const closeBefore = fullContent.lastIndexOf("]]", idx);
+      const insideWikilink = before !== -1 && (closeBefore === -1 || closeBefore < before);
+      if (!insideWikilink) {
+        entityPositions.push(idx);
+      }
       searchFrom = idx + entity.text.length;
     }
 
     const row = container.createDiv("portfolio-suggestion-row");
 
-    const info = row.createDiv("portfolio-suggestion-info");
+    // Top line: name + action buttons
+    const top = row.createDiv("portfolio-suggestion-top");
+
+    const info = top.createDiv("portfolio-suggestion-info");
     const nameSpan = info.createSpan({
       text: entity.suggestedName,
       cls: "portfolio-match-text portfolio-clickable",
@@ -498,29 +568,29 @@ export class SuggestionsView extends ItemView {
       nameSpan.addEventListener("click", () => {
         this.jumpToOccurrence(jumpKey, entityPositions, fullContent, noteFile, entity.text.length);
       });
-      info.createSpan({
-        text: ` (${entityPositions.length}${entityPositions.length > 1 ? " mentions" : " mention"})`,
-        cls: "portfolio-match-count",
-      });
-    }
-    info.createSpan({
-      text: ` ${taxon.prefix} ${taxon.label}`,
-      cls: "portfolio-entity-type",
-    });
-    if (entity.confidence < 0.7) {
-      info.createSpan({
-        text: " (low confidence)",
-        cls: "portfolio-low-confidence",
-      });
     }
 
-    const actions = row.createDiv("portfolio-suggestion-actions");
+    const actions = top.createDiv("portfolio-suggestion-actions");
+
+    // If file exists, show go-to-file button
+    if (existingFile) {
+      const goBtn = actions.createEl("button", {
+        cls: "portfolio-go-btn",
+        attr: { "aria-label": `Open ${existingFile.basename}` },
+      });
+      setIcon(goBtn, "external-link");
+      goBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.app.workspace.openLinkText(existingFile.basename, noteFile.path);
+      });
+    }
 
     // Link button — creates the taxa file and links the first mention
     const linkBtn = actions.createEl("button", {
-      text: "Link",
       cls: "portfolio-action-btn",
+      attr: { "aria-label": "Link" },
     });
+    setIcon(linkBtn, "replace");
     linkBtn.addEventListener("click", async () => {
       const view = await this.findEditorForFile(noteFile);
       if (!view) {
@@ -557,28 +627,59 @@ export class SuggestionsView extends ItemView {
       this.refresh();
     });
 
-    // Dismiss button
-    const dismissBtn = actions.createEl("button", {
-      text: "\u2715",
-      cls: "portfolio-dismiss-btn",
-      attr: { "aria-label": "Dismiss" },
-    });
-    dismissBtn.addEventListener("click", () => {
-      this.dismissed.add(`llm:${entity.suggestedName}`);
-      this.refresh();
-    });
-
-    // Always ignore button
+    // Ignore button (blocklist permanently)
     const ignoreBtn = actions.createEl("button", {
-      text: "Ignore",
-      cls: "portfolio-ignore-btn",
+      cls: "portfolio-action-btn",
       attr: { "aria-label": "Always ignore" },
     });
+    setIcon(ignoreBtn, "eye-off");
     ignoreBtn.addEventListener("click", async () => {
       this.plugin.settings.blocklist.push(entity.suggestedName);
       await this.plugin.saveSettings();
       this.refresh();
     });
+
+    // Dismiss button (hide for this session)
+    const dismissBtn = actions.createEl("button", {
+      cls: "portfolio-dismiss-btn",
+      attr: { "aria-label": "Dismiss" },
+    });
+    setIcon(dismissBtn, "x");
+    dismissBtn.addEventListener("click", () => {
+      this.dismissed.add(`llm:${entity.suggestedName}`);
+      this.refresh();
+    });
+
+    // Bottom line: metadata
+    const meta = row.createDiv("portfolio-suggestion-meta");
+    if (entityPositions.length > 0) {
+      meta.createSpan({
+        text: `(${entityPositions.length} ${entityPositions.length > 1 ? "mentions" : "mention"}) `,
+        cls: "portfolio-meta-chunk",
+      });
+    }
+    meta.createSpan({
+      text: `${taxon.prefix} ${taxon.label}`,
+      cls: "portfolio-meta-chunk",
+    });
+    if (existingFile) {
+      const fileIndicator = meta.createSpan({
+        cls: "portfolio-meta-chunk portfolio-existing-file portfolio-clickable",
+      });
+      setIcon(fileIndicator, "file-check");
+      const displayName = stripPrefix(existingFile.basename, taxon);
+      fileIndicator.appendText(` ${displayName}`);
+      fileIndicator.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.app.workspace.openLinkText(existingFile.basename, noteFile.path);
+      });
+    }
+    if (entity.confidence < 0.7) {
+      meta.createSpan({
+        text: " (low confidence)",
+        cls: "portfolio-low-confidence",
+      });
+    }
   }
 
   private async renderLinkedTaxa(container: HTMLElement, file: TFile) {
@@ -665,10 +766,10 @@ export class SuggestionsView extends ItemView {
 
       for (const item of items) {
         const row = groupEl.createDiv("portfolio-linked-row");
-        const info = row.createDiv("portfolio-suggestion-info");
+        const info = row.createDiv("portfolio-linked-info");
         const nameSpan = info.createSpan({
           text: item.displayName,
-          cls: "portfolio-match-text portfolio-clickable",
+          cls: "portfolio-linked-name portfolio-clickable",
         });
         if (item.positions.length > 0) {
           const jumpKey = `linked:${item.link}`;
@@ -680,14 +781,28 @@ export class SuggestionsView extends ItemView {
             cls: "portfolio-match-count",
           });
         }
-        const goBtn = row.createEl("button", {
-          text: "\u2192",
+
+        const linkedActions = row.createDiv("portfolio-linked-actions");
+
+        // Go to file button
+        const goBtn = linkedActions.createEl("button", {
           cls: "portfolio-go-btn",
           attr: { "aria-label": "Open taxa file" },
         });
+        setIcon(goBtn, "external-link");
         goBtn.addEventListener("click", (e) => {
           e.preventDefault();
           this.app.workspace.openLinkText(item.link, file.path);
+        });
+
+        // Unlink button
+        const unlinkBtn = linkedActions.createEl("button", {
+          cls: "portfolio-unlink-btn",
+          attr: { "aria-label": "Unlink" },
+        });
+        setIcon(unlinkBtn, "unlink");
+        unlinkBtn.addEventListener("click", async () => {
+          await this.unlinkTaxaFromNote(item.link, item.displayName, file);
         });
       }
     }
@@ -720,7 +835,8 @@ export class SuggestionsView extends ItemView {
           ? selection.trim()
           : content;
 
-      const entities = await ollamaService.extractEntities(textToAnalyze);
+      const customPrompt = this.plugin.settings.customPrompt || undefined;
+      const entities = await ollamaService.extractEntities(textToAnalyze, customPrompt);
 
       // Filter out entities that already have taxa files
       const filtered: ExtractedEntity[] = [];
@@ -754,9 +870,14 @@ export class SuggestionsView extends ItemView {
 }
 
 function groupByTaxon(
-  matches: UnlinkedMatch[]
+  matches: UnlinkedMatch[],
+  taxaMappings: TaxaMapping[]
 ): Map<TaxaMapping, UnlinkedMatch[]> {
+  // Pre-seed in settings order so groups appear in the same sequence
   const map = new Map<TaxaMapping, UnlinkedMatch[]>();
+  for (const taxon of taxaMappings) {
+    map.set(taxon, []);
+  }
   for (const match of matches) {
     const existing = map.get(match.taxon) || [];
     existing.push(match);

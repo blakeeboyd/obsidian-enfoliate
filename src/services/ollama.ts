@@ -57,9 +57,13 @@ export class OllamaService {
     }
   }
 
-  async extractEntities(text: string): Promise<ExtractedEntity[]> {
+  async extractEntities(text: string, customPrompt?: string): Promise<ExtractedEntity[]> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 60000);
+
+    const systemContent = customPrompt
+      ? `${SYSTEM_PROMPT}\n\nAdditional instructions from the user:\n${customPrompt}`
+      : SYSTEM_PROMPT;
 
     try {
       const response = await fetch(`${this.url}/api/chat`, {
@@ -68,7 +72,7 @@ export class OllamaService {
         body: JSON.stringify({
           model: this.model,
           messages: [
-            { role: "system", content: SYSTEM_PROMPT },
+            { role: "system", content: systemContent },
             {
               role: "user",
               content: `Extract entities from this text:\n\n---\n${text}\n---`,
@@ -96,10 +100,21 @@ export class OllamaService {
       }
 
       const parsed = JSON.parse(content);
-      const entities: ExtractedEntity[] = (parsed.entities || []).filter(
+      const valid: ExtractedEntity[] = (parsed.entities || []).filter(
         (e: ExtractedEntity) =>
           e.text && e.type && e.suggestedName && typeof e.confidence === "number" && text.includes(e.text)
       );
+
+      // Deduplicate by suggestedName, keeping the highest confidence
+      const byName = new Map<string, ExtractedEntity>();
+      for (const e of valid) {
+        const key = e.suggestedName.toLowerCase();
+        const existing = byName.get(key);
+        if (!existing || e.confidence > existing.confidence) {
+          byName.set(key, e);
+        }
+      }
+      const entities = Array.from(byName.values());
 
       // Sort by confidence descending
       entities.sort((a, b) => b.confidence - a.confidence);
