@@ -23,13 +23,14 @@ export function findUnlinkedMatches(
   for (const taxon of taxaMappings) {
     const taxaFiles = getTaxaFiles(app, taxon);
 
+    const bodyStart = bodyStartOffset(noteContent);
     for (const taxaFile of taxaFiles) {
       // Skip self-references
       if (taxaFile.path === noteFile.path) continue;
       // Skip already-linked files unless we're surfacing their aliases
       if (!includeLinkedFiles && alreadyLinked.has(taxaFile.path)) continue;
 
-      const positions = findFileMatchPositions(app, noteContent, taxaFile, taxon);
+      const positions = findFileMatchPositions(app, noteContent, taxaFile, taxon, bodyStart);
       if (positions.length > 0) {
         matches.push({
           matchText: positions[0].surface,
@@ -49,25 +50,38 @@ export function findUnlinkedMatches(
 }
 
 /**
+ * Offset where the note body begins, i.e. just past the closing fence of a
+ * YAML frontmatter block. Returns 0 when there is no frontmatter. Used to keep
+ * matches out of the properties block, which can't be navigated or linked.
+ */
+export function bodyStartOffset(content: string): number {
+  const match = content.match(/^---\r?\n[\s\S]*?\r?\n---[ \t]*(\r?\n|$)/);
+  return match ? match[0].length : 0;
+}
+
+/**
  * Find all unlinked occurrences of a single taxa file's name and aliases in the
  * text, deduped by offset (keeping the longest term at each offset). Positions
- * inside existing [[ ]] wikilinks are excluded. Used both for unlinked-mention
- * detection and for folding alias mentions into an already-linked file's entry.
+ * inside existing [[ ]] wikilinks, or before bodyStart (i.e. in frontmatter),
+ * are excluded. Used both for unlinked-mention detection and for folding alias
+ * mentions into an already-linked file's entry.
  */
 export function findFileMatchPositions(
   app: App,
   noteContent: string,
   taxaFile: TFile,
-  taxon: TaxaMapping
+  taxon: TaxaMapping,
+  bodyStart = 0
 ): MatchPosition[] {
   const searchTerms = getSearchTerms(app, taxaFile, taxon);
   // Keyed by offset so overlapping terms dedupe; keep the longest match.
   const byOffset = new Map<number, MatchPosition>();
 
   for (const term of searchTerms) {
-    if (term.length < 2) continue;
+    if (typeof term !== "string" || term.length < 2) continue;
 
     for (const offset of findUnlinkedPositions(noteContent, term)) {
+      if (offset < bodyStart) continue;
       const existing = byOffset.get(offset);
       if (!existing || term.length > existing.len) {
         byOffset.set(offset, {
@@ -127,8 +141,12 @@ function getSearchTerms(
   const cache: CachedMetadata | null = app.metadataCache.getFileCache(file);
   if (cache?.frontmatter?.aliases) {
     const aliases = cache.frontmatter.aliases;
+    // Aliases can hold non-string YAML values (numbers, null, nested lists).
+    // Keep only strings so they don't crash the case-insensitive matcher.
     if (Array.isArray(aliases)) {
-      terms.push(...aliases);
+      for (const alias of aliases) {
+        if (typeof alias === "string") terms.push(alias);
+      }
     } else if (typeof aliases === "string") {
       terms.push(aliases);
     }

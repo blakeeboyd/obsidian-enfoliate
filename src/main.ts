@@ -23,6 +23,7 @@ const DEFAULT_SETTINGS: PortfolioSettings = {
   matchLinkedAliases: false,
   blocklist: [],
   highlightOnJump: true,
+  selectOnJump: false,
   highlightColor: "",
 };
 

@@ -15,6 +15,7 @@ export interface PortfolioSettings {
   matchLinkedAliases: boolean;
   blocklist: string[];
   highlightOnJump: boolean;
+  selectOnJump: boolean;
   highlightColor: string;
 }
 

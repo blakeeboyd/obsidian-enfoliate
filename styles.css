@@ -329,6 +329,16 @@
   margin-bottom: 8px;
 }
 
+.portfolio-blocklist-add {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.portfolio-blocklist-add input {
+  flex: 1;
+}
+
 .portfolio-blocklist-row {
   display: flex;
   justify-content: space-between;

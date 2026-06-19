@@ -37,6 +37,13 @@ A sidebar panel with two sections for the active note:
 
 The sidebar refreshes on file switch, content edits, and selection changes. Select text to scope the scan to just that selection.
 
+> **Quote numeric aliases.** YAML reads an unquoted alias like `5.1` or `2024` as a number, not text. Portfolio ignores non-string aliases so they can't break matching — which also means they won't be searched. Quote them in frontmatter to keep them working as aliases:
+>
+> ```yaml
+> aliases:
+>   - "5.1"
+> ```
+
 [Suggestions sidebar docs →](docs/suggestions-sidebar.md)
 
 ### Navigation
@@ -98,7 +105,7 @@ Copy `main.js`, `manifest.json`, and `styles.css` to your vault's `.obsidian/plu
 | Create folders if missing | On | Create target folders that don't exist |
 | Open suggestions on startup | Off | Auto-open the sidebar on plugin load |
 | Show status bar | On | Taxa counts in the status bar (reload required) |
-| Match aliases of linked files | Off | Surface unlinked alias mentions of already-linked files |
+| Match aliases of linked files | Off | Fold unlinked alias mentions of already-linked files into their Linked Taxa entry |
 | Highlight on jump | On | Flash highlight when jumping to an occurrence |
 | Highlight color | Yellow | Custom color for the jump highlight |
 | Blocklist | — | Permanently ignored suggestion terms |

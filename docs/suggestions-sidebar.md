@@ -1,6 +1,6 @@
 # Suggestions Sidebar
 
-The suggestions sidebar is Portfolio's main analysis panel. It shows what's already linked in a note, what could be linked, and what an AI model thinks might be worth linking.
+The suggestions sidebar is Portfolio's main analysis panel. It shows what's already linked in a note and what could be linked.
 
 Open it with the **Open suggestions sidebar** command, by clicking the status bar taxa count, or by enabling "Open suggestions on startup" in settings.
 
@@ -37,7 +37,7 @@ Matching rules:
 - Markdown formatting characters (`*`, `_`, `~`, `` ` ``) treated as word boundaries, so bold/italic text is matched correctly
 - Existing wikilinks are excluded — text inside `[[ ]]` won't generate a match
 - Minimum term length of 2 characters
-- By default, a file that is already linked anywhere in the note drops out of unlinked mentions. Turn on **Match aliases of linked files** (see [Settings](settings.md)) to keep surfacing its still-unlinked alias occurrences — for example, when `[[+Zone of Proximal Development]]` is linked once but the abbreviation "ZPD" appears unlinked elsewhere. Each occurrence links with its own surface form, so "ZPD" becomes `[[+Zone of Proximal Development|ZPD]]`.
+- A file that is already linked anywhere in the note never appears under Unlinked Mentions — it is shown under Linked Taxa instead, so the same file is never listed twice. Its still-unlinked alias occurrences are surfaced there (see Linked Taxa above) when **Match aliases of linked files** is on.
 
 ## Refreshing
 

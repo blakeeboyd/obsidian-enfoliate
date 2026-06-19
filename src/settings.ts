@@ -1,6 +1,81 @@
-import { App, PluginSettingTab, Setting, AbstractInputSuggest, TFolder } from "obsidian";
+import { App, Modal, PluginSettingTab, Setting, AbstractInputSuggest, TFolder } from "obsidian";
 import type PortfolioPlugin from "./main";
 import { TaxaMapping } from "./types";
+
+class BlocklistModal extends Modal {
+  private plugin: PortfolioPlugin;
+  private onChangeCb?: () => void;
+
+  constructor(app: App, plugin: PortfolioPlugin, onChange?: () => void) {
+    super(app);
+    this.plugin = plugin;
+    this.onChangeCb = onChange;
+  }
+
+  onOpen() {
+    this.render();
+  }
+
+  private render() {
+    const { contentEl } = this;
+    contentEl.empty();
+
+    contentEl.createEl("h2", { text: "Blocklist" });
+    contentEl.createEl("p", {
+      text: "Terms that never appear as suggestions.",
+      cls: "setting-item-description",
+    });
+
+    const addRow = contentEl.createDiv("portfolio-blocklist-add");
+    const input = addRow.createEl("input", {
+      type: "text",
+      placeholder: "Add a term to block",
+    });
+    const addBtn = addRow.createEl("button", { text: "Add", cls: "mod-cta" });
+
+    const addTerm = async () => {
+      const term = input.value.trim();
+      if (!term) return;
+      if (!this.plugin.settings.blocklist.includes(term)) {
+        this.plugin.settings.blocklist.push(term);
+        await this.plugin.saveSettings();
+      }
+      this.render();
+    };
+    addBtn.addEventListener("click", addTerm);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addTerm();
+    });
+
+    const list = contentEl.createDiv("portfolio-blocklist");
+    const blocklist = this.plugin.settings.blocklist;
+
+    if (blocklist.length === 0) {
+      list.createEl("p", {
+        text: "No blocked terms.",
+        cls: "setting-item-description",
+      });
+    } else {
+      for (let i = 0; i < blocklist.length; i++) {
+        const row = list.createDiv("portfolio-blocklist-row");
+        row.createSpan({ text: blocklist[i] });
+        const deleteBtn = row.createEl("button", { text: "✕" });
+        deleteBtn.addEventListener("click", async () => {
+          this.plugin.settings.blocklist.splice(i, 1);
+          await this.plugin.saveSettings();
+          this.render();
+        });
+      }
+    }
+
+    input.focus();
+  }
+
+  onClose() {
+    this.contentEl.empty();
+    this.onChangeCb?.();
+  }
+}
 
 class FolderSuggest extends AbstractInputSuggest<TFolder> {
   getSuggestions(query: string): TFolder[] {
@@ -60,7 +135,7 @@ export class PortfolioSettingTab extends PluginSettingTab {
     this.renderTaxaMappings(mappingsContainer);
 
     new Setting(containerEl).addButton((btn) =>
-      btn.setButtonText("Add mapping").onClick(async () => {
+      btn.setButtonText("Add Taxa").onClick(async () => {
         this.plugin.settings.taxaMappings.push({
           prefix: "",
           label: "",
@@ -135,7 +210,7 @@ export class PortfolioSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Match aliases of linked files")
       .setDesc(
-        'In Unlinked Mentions, also surface unlinked alias occurrences of a file that is already linked in the note, so you can cycle through and link them (e.g. "ZPD" for an already-linked Zone of Proximal Development).'
+        'Under Linked Taxa, fold in unlinked alias occurrences of an already-linked file so you can cycle through them (for example, "USA" where the linked file is United States).'
       )
       .addToggle((toggle) =>
         toggle
@@ -154,6 +229,18 @@ export class PortfolioSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.highlightOnJump)
           .onChange(async (value) => {
             this.plugin.settings.highlightOnJump = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Select text on jump")
+      .setDesc("Select the matched text in the editor when jumping to an occurrence. Edit mode only.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.selectOnJump)
+          .onChange(async (value) => {
+            this.plugin.settings.selectOnJump = value;
             await this.plugin.saveSettings();
           })
       );
@@ -194,37 +281,17 @@ export class PortfolioSettingTab extends PluginSettingTab {
 
     // --- Blocklist ---
     containerEl.createEl("h2", { text: "Blocklist" });
-    containerEl.createEl("p", {
-      text: "Terms that will never appear as suggestions. Added via the sidebar's \"Ignore\" button.",
-      cls: "setting-item-description",
-    });
 
-    const blocklistContainer = containerEl.createDiv("portfolio-blocklist");
-    this.renderBlocklist(blocklistContainer);
-  }
-
-  private renderBlocklist(container: HTMLElement): void {
-    container.empty();
-    const blocklist = this.plugin.settings.blocklist;
-
-    if (blocklist.length === 0) {
-      container.createEl("p", {
-        text: "No blocked terms.",
-        cls: "setting-item-description",
-      });
-      return;
-    }
-
-    for (let i = 0; i < blocklist.length; i++) {
-      const row = container.createDiv("portfolio-blocklist-row");
-      row.createSpan({ text: blocklist[i] });
-      const deleteBtn = row.createEl("button", { text: "\u2715" });
-      deleteBtn.addEventListener("click", async () => {
-        this.plugin.settings.blocklist.splice(i, 1);
-        await this.plugin.saveSettings();
-        this.renderBlocklist(container);
-      });
-    }
+    new Setting(containerEl)
+      .setName("Blocked terms")
+      .setDesc("Terms that never appear as suggestions. Add them here or via the sidebar's \"Ignore\" button.")
+      .addButton((btn) =>
+        btn
+          .setButtonText(`Manage (${this.plugin.settings.blocklist.length})`)
+          .onClick(() => {
+            new BlocklistModal(this.app, this.plugin, () => this.display()).open();
+          })
+      );
   }
 
   private renderTaxaMappings(container: HTMLElement): void {

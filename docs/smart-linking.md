@@ -27,7 +27,7 @@ Select a suggestion to insert a wikilink at the cursor. Up to 20 suggestions are
 
 ## Link from the suggestions sidebar
 
-The [suggestions sidebar](suggestions-sidebar.md) offers one-click linking for both unlinked mentions and AI-discovered entities:
+The [suggestions sidebar](suggestions-sidebar.md) offers one-click linking for unlinked mentions:
 
 - **Link** — wraps the first occurrence in a wikilink (creates the file if needed)
 - **Link all** — wraps every occurrence of a term in wikilinks, working backwards through the document to preserve character positions

@@ -3,7 +3,7 @@ import { StateEffect, StateField } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 import type PortfolioPlugin from "../main";
 import { UnlinkedMatch, TaxaMapping, MatchPosition } from "../types";
-import { findUnlinkedMatches, findFileMatchPositions } from "../services/unlinked-matcher";
+import { findUnlinkedMatches, findFileMatchPositions, bodyStartOffset } from "../services/unlinked-matcher";
 import { stripPrefix } from "../taxa";
 
 const addHighlight = StateEffect.define<{ from: number; to: number }>();
@@ -135,8 +135,13 @@ export class SuggestionsView extends ItemView {
       this.jumpInPreview(view, pos.line);
     } else {
       const editor = view.editor;
-      editor.setCursor(pos);
-      editor.scrollIntoView({ from: pos, to: pos }, true);
+      const endPos = this.offsetToPos(content, offset + highlightLen);
+      if (this.plugin.settings.selectOnJump && highlightLen) {
+        editor.setSelection(pos, endPos);
+      } else {
+        editor.setCursor(pos);
+      }
+      editor.scrollIntoView({ from: pos, to: endPos }, true);
       if (this.plugin.settings.highlightOnJump && highlightLen) {
         this.flashHighlight(editor, offset, offset + highlightLen);
       }
@@ -281,16 +286,18 @@ export class SuggestionsView extends ItemView {
       this.refresh();
     });
 
-    // Linked Taxa
-    this.renderLinkedTaxa(container, file);
+    // Linked Taxa (awaited so it renders above Unlinked Mentions)
+    await this.renderLinkedTaxa(container, file);
 
-    // Layer 1: Unlinked Matches
+    // Layer 1: Unlinked Matches. Already-linked files are excluded here so a
+    // file never appears in both sections; its unlinked alias occurrences
+    // surface under Linked Taxa instead (when "Match aliases" is on).
     const unlinkedMatches = findUnlinkedMatches(
       this.app,
       textToAnalyze,
       file,
       this.plugin.settings.taxaMappings,
-      this.plugin.settings.matchLinkedAliases
+      false
     ).filter((m) => !this.dismissed.has(m.filePath) && !this.plugin.settings.blocklist.includes(m.alias));
 
     if (unlinkedMatches.length > 0) {
@@ -300,6 +307,7 @@ export class SuggestionsView extends ItemView {
       // Group by taxon
       const grouped = groupByTaxon(unlinkedMatches, this.plugin.settings.taxaMappings);
       for (const [taxon, matches] of grouped) {
+        if (matches.length === 0) continue;
         const groupEl = section.createDiv("portfolio-taxa-group");
         groupEl.createEl("h6", {
           text: `${taxon.prefix} ${taxon.label}`,
@@ -456,6 +464,7 @@ export class SuggestionsView extends ItemView {
     const cache = this.app.metadataCache.getFileCache(file);
     const links = cache?.links || [];
     const content = await this.app.vault.cachedRead(file);
+    const bodyStart = bodyStartOffset(content);
 
     // Group linked taxa by mapping, collecting positions
     interface LinkedItem {
@@ -484,7 +493,9 @@ export class SuggestionsView extends ItemView {
             while (searchFrom < content.length) {
               const idx = content.indexOf(wikiPattern, searchFrom);
               if (idx === -1) break;
-              byOffset.set(idx, { offset: idx, len: wikiPattern.length, surface: wikiPattern });
+              if (idx >= bodyStart) {
+                byOffset.set(idx, { offset: idx, len: wikiPattern.length, surface: wikiPattern });
+              }
               searchFrom = idx + wikiPattern.length;
             }
             const linkedCount = byOffset.size;
@@ -497,8 +508,9 @@ export class SuggestionsView extends ItemView {
               while (searchFrom < lowerContent.length) {
                 const idx = lowerContent.indexOf(lowerName, searchFrom);
                 if (idx === -1) break;
-                // Skip if this position overlaps with a wikilink position
+                // Skip frontmatter and positions overlapping a wikilink
                 if (
+                  idx >= bodyStart &&
                   !byOffset.has(idx) &&
                   ![...byOffset.keys()].some((p) => Math.abs(p - idx) < wikiPattern.length + 2)
                 ) {
@@ -517,7 +529,7 @@ export class SuggestionsView extends ItemView {
             if (this.plugin.settings.matchLinkedAliases) {
               const dest = this.app.metadataCache.getFirstLinkpathDest(link.link, file.path);
               if (dest) {
-                for (const mp of findFileMatchPositions(this.app, content, dest, mapping)) {
+                for (const mp of findFileMatchPositions(this.app, content, dest, mapping, bodyStart)) {
                   if (!byOffset.has(mp.offset)) byOffset.set(mp.offset, mp);
                 }
               }

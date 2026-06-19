@@ -30,7 +30,7 @@ Changes take effect immediately after saving.
 | Setting | Default | Description |
 |---------|---------|-------------|
 | Open suggestions on startup | Off | Automatically open the suggestions sidebar when the plugin loads |
-| Match aliases of linked files | Off | Also surface unlinked alias occurrences of a file that is already linked in the note (e.g. "ZPD" for an already-linked Zone of Proximal Development) |
+| Match aliases of linked files | Off | Under Linked Taxa, fold in a file's unlinked alias occurrences so you can cycle through them (e.g. "USA" for an already-linked United States) |
 | Highlight on jump | On | Flash a brief highlight when jumping to an occurrence |
 | Highlight color | Yellow | Color picker for the jump highlight (reset button restores default) |
 
