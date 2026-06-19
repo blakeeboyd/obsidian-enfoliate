@@ -6,6 +6,7 @@ export const DEFAULT_TAXA_MAPPINGS: TaxaMapping[] = [
   { prefix: "~", label: "Places", folder: "00 knowledge/places" },
   { prefix: "\u2022", label: "Projects", folder: "00 knowledge/projects" },
   { prefix: "\u00A9", label: "Works", folder: "00 knowledge/works" },
+  { prefix: "\u00A1", label: "Images", folder: "00 knowledge/images" },
   { prefix: "\u00BA", label: "Organizations", folder: "00 knowledge/organizations" },
   { prefix: "\u221E", label: "Events", folder: "00 knowledge/events" },
 ];

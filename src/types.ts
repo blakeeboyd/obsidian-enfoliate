@@ -15,6 +15,7 @@ export interface PortfolioSettings {
   matchLinkedAliases: boolean;
   blocklist: string[];
   highlightOnJump: boolean;
+  highlightDurationSeconds: number;
   selectOnJump: boolean;
   scopeToSelection: boolean;
   showSearchBar: boolean;

@@ -356,7 +356,7 @@
 .portfolio-jump-highlight {
   background-color: var(--portfolio-highlight-color, rgba(255, 215, 0, 0.45));
   border-radius: 2px;
-  animation: portfolio-highlight-fade 2.5s ease-out forwards;
+  animation: portfolio-highlight-fade var(--portfolio-highlight-duration, 2.5s) ease-out forwards;
 }
 
 @keyframes portfolio-highlight-fade {

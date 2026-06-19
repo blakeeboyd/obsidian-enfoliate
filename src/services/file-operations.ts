@@ -1,4 +1,4 @@
-import { App, Editor, Notice, TFile, Vault } from "obsidian";
+import { App, Editor, Notice, TFile, Vault, moment } from "obsidian";
 import { TaxaMapping, PortfolioSettings } from "../types";
 import { stripPrefix, addPrefix } from "../taxa";
 
@@ -37,7 +37,11 @@ export async function createTaxaLink(
 
   if (!file) {
     try {
-      const newFile = await app.vault.create(filePath, "");
+      const tmpl = await renderTemplate(app, taxon, cleanName);
+      const newFile = await app.vault.create(filePath, tmpl.content);
+      // If the template uses Templater syntax, let Templater process the file
+      // before we touch the frontmatter, so its <% %> commands resolve.
+      if (tmpl.hasTemplater) await runTemplater(app, newFile);
       await addAliasToFile(app, newFile, cleanName);
       file = newFile;
     } catch (e) {
@@ -53,6 +57,53 @@ export async function createTaxaLink(
   editor.replaceSelection(wikilink);
 
   new Notice(`Linked ${cleanName} as ${taxon.label}`);
+}
+
+/**
+ * Build the initial content for a new taxa file from the taxon's template, if
+ * one is configured. The template engine is auto-detected:
+ * - {{...}} tokens are always filled by Portfolio: {{title}} (also
+ *   {{name}}/{{alias}}), {{prefix}}, {{label}}, and the core-Templates date
+ *   tokens {{date}}, {{time}}, {{date:FORMAT}}, {{time:FORMAT}}.
+ * - If the template also contains Templater syntax (<% ... %>), hasTemplater is
+ *   set so the caller can run Templater on the created file.
+ * Returns empty content when there is no template (or it can't be read).
+ */
+async function renderTemplate(
+  app: App,
+  taxon: TaxaMapping,
+  name: string
+): Promise<{ content: string; hasTemplater: boolean }> {
+  if (!taxon.template) return { content: "", hasTemplater: false };
+  const tmpl = app.vault.getAbstractFileByPath(taxon.template);
+  if (!(tmpl instanceof TFile)) {
+    new Notice(`Template not found: ${taxon.template}`);
+    return { content: "", hasTemplater: false };
+  }
+  const raw = await app.vault.read(tmpl);
+  const content = raw
+    .replace(/\{\{\s*date\s*:\s*([^}]+?)\s*\}\}/gi, (_m, fmt) => moment().format(fmt))
+    .replace(/\{\{\s*time\s*:\s*([^}]+?)\s*\}\}/gi, (_m, fmt) => moment().format(fmt))
+    .replace(/\{\{\s*date\s*\}\}/gi, moment().format("YYYY-MM-DD"))
+    .replace(/\{\{\s*time\s*\}\}/gi, moment().format("HH:mm"))
+    .replace(/\{\{\s*(title|name|alias)\s*\}\}/gi, name)
+    .replace(/\{\{\s*prefix\s*\}\}/gi, taxon.prefix)
+    .replace(/\{\{\s*label\s*\}\}/gi, taxon.label);
+  return { content, hasTemplater: raw.includes("<%") };
+}
+
+/**
+ * Run the installed Templater plugin over a file, resolving its <% %> commands
+ * in place. No-op if Templater isn't installed.
+ */
+async function runTemplater(app: App, file: TFile): Promise<void> {
+  const templater = (app as any).plugins?.plugins?.["templater-obsidian"]?.templater;
+  if (!templater || typeof templater.overwrite_file_commands !== "function") return;
+  try {
+    await templater.overwrite_file_commands(file);
+  } catch (e) {
+    new Notice(`Templater processing failed: ${e}`);
+  }
 }
 
 /**

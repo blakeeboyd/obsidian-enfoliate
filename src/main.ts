@@ -23,6 +23,7 @@ const DEFAULT_SETTINGS: PortfolioSettings = {
   matchLinkedAliases: false,
   blocklist: [],
   highlightOnJump: true,
+  highlightDurationSeconds: 2.5,
   selectOnJump: false,
   scopeToSelection: true,
   showSearchBar: true,

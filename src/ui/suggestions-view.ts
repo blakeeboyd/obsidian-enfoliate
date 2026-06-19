@@ -197,7 +197,7 @@ export class SuggestionsView extends ItemView {
       window.setTimeout(() => {
         highlights.delete("portfolio-jump");
         if (color) document.body.style.removeProperty("--portfolio-highlight-color");
-      }, 2500);
+      }, this.highlightMs());
     };
 
     const highlight = () => {
@@ -368,21 +368,31 @@ export class SuggestionsView extends ItemView {
       cm.dispatch({ effects: StateEffect.appendConfig.of(highlightField) });
     }
 
-    // Apply custom color if set
+    // Apply custom color and duration if set
     const color = this.plugin.settings.highlightColor;
     const el = cm.dom.closest(".cm-editor") as HTMLElement | null;
-    if (el && color) {
-      el.style.setProperty("--portfolio-highlight-color", color);
+    if (el) {
+      el.style.setProperty(
+        "--portfolio-highlight-duration",
+        `${this.plugin.settings.highlightDurationSeconds}s`
+      );
+      if (color) el.style.setProperty("--portfolio-highlight-color", color);
     }
 
     cm.dispatch({ effects: addHighlight.of({ from: fromOffset, to: toOffset }) });
 
     setTimeout(() => {
       cm.dispatch({ effects: clearHighlight.of(null) });
-      if (el && color) {
-        el.style.removeProperty("--portfolio-highlight-color");
+      if (el) {
+        el.style.removeProperty("--portfolio-highlight-duration");
+        if (color) el.style.removeProperty("--portfolio-highlight-color");
       }
-    }, 2500);
+    }, this.highlightMs());
+  }
+
+  /** Highlight duration in milliseconds, floored so it can't vanish instantly. */
+  private highlightMs(): number {
+    return Math.max(300, this.plugin.settings.highlightDurationSeconds * 1000);
   }
 
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;

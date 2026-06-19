@@ -78,4 +78,4 @@ In **Reading mode** there is no editor to drive, so the jump scrolls the rendere
 
 - **Toggle highlight on jump** — enable/disable the highlight flash (Settings → Portfolio)
 - **Highlight color** — choose a custom color or use the default yellow (`rgba(255, 215, 0, 0.45)`)
-- **Fade duration** — the highlight holds for 1.5 seconds, then fades over 1 second (2.5 seconds total)
+- **Highlight duration** — how long the highlight stays before fading, 0.5 to 10 seconds (default 2.5)

@@ -4,15 +4,17 @@ All settings are in **Settings → Portfolio**.
 
 ## Taxa Mappings
 
-A table of all configured taxa types. Each row has three fields:
+A table of all configured taxa types. Each row has these fields:
 
 | Field  | Description |
 |--------|-------------|
 | Prefix | Character(s) that identify this taxon in filenames (e.g. `@`) |
 | Label  | Display name (e.g. "People") |
 | Folder | Target folder path relative to vault root |
+| Template | Optional path to a template file used as the starting content for new files of this taxon. Supports `{{title}}` (the entity name, also `{{name}}`/`{{alias}}`), `{{prefix}}`, and `{{label}}` |
 
-- **Add mapping** — click the "Add mapping" button below the table
+- **Add Taxa** — click the "Add Taxa" button below the table
+- **Restore defaults** — replace all mappings with the plugin defaults (after a confirmation). Resets configuration only; never moves or renames files
 - **Edit** — change any field directly in the table
 - **Delete** — click the **×** button on a row
 
@@ -32,6 +34,7 @@ Changes take effect immediately after saving.
 | Open suggestions on startup | Off | Automatically open the suggestions sidebar when the plugin loads |
 | Match aliases of linked files | Off | Under Linked Taxa, fold in a file's unlinked alias occurrences so you can cycle through them (e.g. "USA" for an already-linked United States) |
 | Highlight on jump | On | Flash a brief highlight when jumping to an occurrence |
+| Highlight duration | 2.5s | How long the jump highlight stays before fading (0.5–10 seconds) |
 | Select text on jump | Off | Select the matched text in the editor when jumping to an occurrence (edit mode only) |
 | Scope to selection | On | When you select text in the editor, narrow the sidebar to taxa within that selection. Off scans the whole note |
 | Show search bar | On | Show the filter box at the top of the suggestions sidebar |

@@ -1,6 +1,41 @@
-import { App, Modal, PluginSettingTab, Setting, AbstractInputSuggest, TFolder } from "obsidian";
+import { App, Modal, PluginSettingTab, Setting, AbstractInputSuggest, TFile, TFolder } from "obsidian";
 import type PortfolioPlugin from "./main";
 import { TaxaMapping } from "./types";
+import { DEFAULT_TAXA_MAPPINGS } from "./taxa";
+
+class ConfirmModal extends Modal {
+  private message: string;
+  private confirmText: string;
+  private onConfirm: () => void;
+
+  constructor(app: App, message: string, confirmText: string, onConfirm: () => void) {
+    super(app);
+    this.message = message;
+    this.confirmText = confirmText;
+    this.onConfirm = onConfirm;
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.createEl("p", { text: this.message });
+    const row = contentEl.createDiv();
+    row.style.display = "flex";
+    row.style.justifyContent = "flex-end";
+    row.style.gap = "8px";
+    row.style.marginTop = "12px";
+    row.createEl("button", { text: "Cancel" }).addEventListener("click", () => this.close());
+    const ok = row.createEl("button", { text: this.confirmText, cls: "mod-warning" });
+    ok.addEventListener("click", () => {
+      this.close();
+      this.onConfirm();
+    });
+  }
+
+  onClose() {
+    this.contentEl.empty();
+  }
+}
 
 class BlocklistModal extends Modal {
   private plugin: PortfolioPlugin;
@@ -106,6 +141,26 @@ class FolderSuggest extends AbstractInputSuggest<TFolder> {
   }
 }
 
+class FileSuggest extends AbstractInputSuggest<TFile> {
+  getSuggestions(query: string): TFile[] {
+    const lowerQuery = query.toLowerCase();
+    return this.app.vault
+      .getMarkdownFiles()
+      .filter((f) => f.path.toLowerCase().contains(lowerQuery))
+      .sort((a, b) => a.path.localeCompare(b.path))
+      .slice(0, 50);
+  }
+
+  renderSuggestion(file: TFile, el: HTMLElement): void {
+    el.setText(file.path);
+  }
+
+  selectSuggestion(file: TFile, _evt: MouseEvent | KeyboardEvent): void {
+    this.setValue(file.path);
+    this.close();
+  }
+}
+
 export class PortfolioSettingTab extends PluginSettingTab {
   plugin: PortfolioPlugin;
 
@@ -129,22 +184,40 @@ export class PortfolioSettingTab extends PluginSettingTab {
       text: "Stowe Boyd's Portfolio knowledge management system",
       href: "https://www.workings.co/p/portfolio-a-knowledge-base-built",
     });
-    attribution.appendText(". Define prefix characters and their target folders. Files starting with a prefix will be auto-moved to the corresponding folder.");
+    attribution.appendText(". Define prefix characters and their target folders. Files starting with a prefix will be auto-moved to the corresponding folder. Optionally set a template file per taxa; new files of that type start from the template, with {{title}}, {{prefix}}, and {{label}} substituted.");
 
     const mappingsContainer = containerEl.createDiv("portfolio-taxa-mappings");
     this.renderTaxaMappings(mappingsContainer);
 
-    new Setting(containerEl).addButton((btn) =>
-      btn.setButtonText("Add Taxa").onClick(async () => {
-        this.plugin.settings.taxaMappings.push({
-          prefix: "",
-          label: "",
-          folder: "",
-        });
-        await this.plugin.saveSettings();
-        this.display();
-      })
-    );
+    new Setting(containerEl)
+      .addButton((btn) =>
+        btn.setButtonText("Add Taxa").onClick(async () => {
+          this.plugin.settings.taxaMappings.push({
+            prefix: "",
+            label: "",
+            folder: "",
+          });
+          await this.plugin.saveSettings();
+          this.display();
+        })
+      )
+      .addButton((btn) =>
+        btn
+          .setButtonText("Restore defaults")
+          .setWarning()
+          .onClick(() => {
+            new ConfirmModal(
+              this.app,
+              "Replace your current taxa mappings with the plugin defaults? Folders and any custom taxa you added will be lost. This does not move or rename any files.",
+              "Restore defaults",
+              async () => {
+                this.plugin.settings.taxaMappings = DEFAULT_TAXA_MAPPINGS.map((m) => ({ ...m }));
+                await this.plugin.saveSettings();
+                this.display();
+              }
+            ).open();
+          })
+      );
 
     // --- Editor ---
     containerEl.createEl("h2", { text: "Editor" });
@@ -229,6 +302,20 @@ export class PortfolioSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.highlightOnJump)
           .onChange(async (value) => {
             this.plugin.settings.highlightOnJump = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Highlight duration")
+      .setDesc("How long the jump highlight stays before fading, in seconds.")
+      .addSlider((slider) =>
+        slider
+          .setLimits(0.5, 10, 0.5)
+          .setValue(this.plugin.settings.highlightDurationSeconds)
+          .setDynamicTooltip()
+          .onChange(async (value) => {
+            this.plugin.settings.highlightDurationSeconds = value;
             await this.plugin.saveSettings();
           })
       );
@@ -325,6 +412,7 @@ export class PortfolioSettingTab extends PluginSettingTab {
       (mapping: TaxaMapping, index: number) => {
         const row = container.createDiv("portfolio-taxa-row");
         row.style.display = "flex";
+        row.style.flexWrap = "wrap";
         row.style.gap = "8px";
         row.style.alignItems = "center";
         row.style.marginBottom = "8px";
@@ -368,6 +456,27 @@ export class PortfolioSettingTab extends PluginSettingTab {
           folderInput.value = folder.path;
           this.plugin.settings.taxaMappings[index].folder = folder.path;
           await this.plugin.saveSettings();
+        });
+
+        const templateInput = row.createEl("input", {
+          type: "text",
+          placeholder: "Template (optional)",
+          value: mapping.template || "",
+        });
+        templateInput.style.width = "180px";
+        const saveTemplate = async (value: string) => {
+          const trimmed = value.trim();
+          if (trimmed) this.plugin.settings.taxaMappings[index].template = trimmed;
+          else delete this.plugin.settings.taxaMappings[index].template;
+          await this.plugin.saveSettings();
+        };
+        templateInput.addEventListener("change", () => saveTemplate(templateInput.value));
+
+        // Attach template-file autocomplete
+        const fileSuggest = new FileSuggest(this.app, templateInput);
+        fileSuggest.onSelect(async (file) => {
+          templateInput.value = file.path;
+          await saveTemplate(file.path);
         });
 
         const deleteBtn = row.createEl("button", { text: "\u2715" });
