@@ -72,6 +72,8 @@ Clicking a taxa name (in any section) jumps to the next occurrence in the docume
 
 For wikilinks, the highlight covers the full `[[...]]` span, not just the display text.
 
+In **Reading mode** there is no editor to drive, so the jump scrolls the rendered preview to the occurrence and highlights it directly in the rendered HTML (via the CSS Custom Highlight API). The exact occurrence is found by index — its position among the matching occurrences in source maps to the same position among the rendered ones — so cycling moves through occurrences one at a time as in edit mode, even when several share a line, and a linked occurrence is highlighted on its rendered link rather than skipped. The match is centered in the view.
+
 ### Highlight settings
 
 - **Toggle highlight on jump** — enable/disable the highlight flash (Settings → Portfolio)

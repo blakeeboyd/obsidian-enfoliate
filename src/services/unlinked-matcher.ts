@@ -195,7 +195,7 @@ function findUnlinkedPositions(text: string, term: string): number[] {
 /**
  * Check if a position in text falls inside a [[ ]] wikilink.
  */
-function isInsideWikilink(text: string, position: number): boolean {
+export function isInsideWikilink(text: string, position: number): boolean {
   // Look backwards for [[ or ]]
   let i = position - 1;
   while (i >= 1) {

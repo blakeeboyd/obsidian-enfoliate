@@ -3,7 +3,7 @@ import { StateEffect, StateField } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 import type PortfolioPlugin from "../main";
 import { UnlinkedMatch, TaxaMapping, MatchPosition } from "../types";
-import { findUnlinkedMatches, findFileMatchPositions, bodyStartOffset } from "../services/unlinked-matcher";
+import { findUnlinkedMatches, findFileMatchPositions, bodyStartOffset, isInsideWikilink } from "../services/unlinked-matcher";
 import { stripPrefix } from "../taxa";
 
 const addHighlight = StateEffect.define<{ from: number; to: number }>();
@@ -142,8 +142,17 @@ export class SuggestionsView extends ItemView {
 
     if (view.getMode() === "preview") {
       // Reading mode: there is no live CodeMirror editor to drive, so scroll
-      // the rendered preview to the line and flash the section instead.
-      this.jumpInPreview(view, pos.line);
+      // the rendered preview and highlight the occurrence in the DOM. A
+      // wikilink position renders as a link element; a plain position renders
+      // as body text.
+      const isWikilinkPos = content.substring(offset, offset + 2) === "[[";
+      if (isWikilinkPos) {
+        const m = content.substring(offset, offset + highlightLen).match(/^\[\[([^\]|#]+)/);
+        this.jumpInPreview(view, pos.line, content, offset, "link", m ? m[1].trim() : "");
+      } else {
+        const surface = content.substring(offset, offset + (occurrenceLen ?? 0));
+        this.jumpInPreview(view, pos.line, content, offset, "text", surface);
+      }
     } else {
       const editor = view.editor;
       const endPos = this.offsetToPos(content, offset + highlightLen);
@@ -159,31 +168,195 @@ export class SuggestionsView extends ItemView {
     }
   }
 
-  private jumpInPreview(view: MarkdownView, line: number) {
+  private jumpInPreview(
+    view: MarkdownView,
+    line: number,
+    content: string,
+    offset: number,
+    kind: "text" | "link",
+    key: string
+  ) {
     const preview = (view as any).previewMode;
+    const wantsHighlight = this.plugin.settings.highlightOnJump && !!key;
+
+    const findRanges = (root: HTMLElement) =>
+      kind === "link" ? this.findLinkRanges(root, key) : this.findPreviewRanges(root, key);
+    const countBefore = (from: number) =>
+      kind === "link"
+        ? this.countLinksBefore(content, key, from, offset)
+        : this.countMatchesBefore(content, key, from, offset);
+
+    const place = (target: Range) => {
+      target.startContainer.parentElement?.scrollIntoView({ block: "center" });
+      const HighlightCtor = (window as any).Highlight;
+      const highlights = (CSS as any).highlights;
+      if (!HighlightCtor || !highlights) return;
+      const color = this.plugin.settings.highlightColor;
+      if (color) document.body.style.setProperty("--portfolio-highlight-color", color);
+      highlights.set("portfolio-jump", new HighlightCtor(target));
+      window.setTimeout(() => {
+        highlights.delete("portfolio-jump");
+        if (color) document.body.style.removeProperty("--portfolio-highlight-color");
+      }, 2500);
+    };
+
+    const highlight = () => {
+      const root = preview?.containerEl as HTMLElement | undefined;
+      if (!root) return;
+
+      // Prefer resolving within the section containing the target line. Reading
+      // view renders lazily, so a global count is unreliable; within one fully
+      // rendered section the occurrence's index matches the rendered order.
+      const section = this.findPreviewSection(preview, root, line);
+      if (section) {
+        const ranges = findRanges(section.el);
+        if (ranges.length) {
+          const index = countBefore(this.offsetOfLine(content, section.lineStart));
+          place(ranges[Math.min(index, ranges.length - 1)]);
+          return;
+        }
+      }
+
+      // Fallback: search the whole preview so highlighting still works even if
+      // the section lookup comes up empty.
+      const ranges = findRanges(root);
+      if (!ranges.length) return;
+      const index = countBefore(bodyStartOffset(content));
+      place(ranges[Math.min(index, ranges.length - 1)]);
+    };
+
+    // Render the target first (applyScroll), then highlight on the next tick.
     if (preview && typeof preview.applyScroll === "function") {
       preview.applyScroll(line);
     }
-    if (!this.plugin.settings.highlightOnJump) return;
+    if (wantsHighlight) window.setTimeout(highlight, 60);
+  }
 
-    // The target section may need a tick to render after scrolling.
-    window.setTimeout(() => {
-      const sections = preview?.renderer?.sections as
-        | Array<{ lineStart: number; lineEnd: number; el: HTMLElement }>
-        | undefined;
-      if (!Array.isArray(sections)) return;
-      const section = sections.find((s) => line >= s.lineStart && line <= s.lineEnd);
-      const el = section?.el;
-      if (!el) return;
+  /**
+   * Find the rendered block containing `line`, with its source start line,
+   * using the public getSectionInfo API.
+   */
+  private findPreviewSection(
+    preview: any,
+    root: HTMLElement,
+    line: number
+  ): { el: HTMLElement; lineStart: number } | null {
+    const sizers = root.querySelectorAll(".markdown-preview-sizer");
+    for (const sizer of Array.from(sizers)) {
+      for (const block of Array.from(sizer.children)) {
+        if (!(block instanceof HTMLElement)) continue;
+        const info = preview?.getSectionInfo?.(block);
+        if (info && line >= info.lineStart && line <= info.lineEnd) {
+          return { el: block, lineStart: info.lineStart };
+        }
+      }
+    }
+    return null;
+  }
 
-      const color = this.plugin.settings.highlightColor;
-      if (color) el.style.setProperty("--portfolio-highlight-color", color);
-      el.addClass("portfolio-preview-flash");
-      window.setTimeout(() => {
-        el.removeClass("portfolio-preview-flash");
-        if (color) el.style.removeProperty("--portfolio-highlight-color");
-      }, 2500);
-    }, 50);
+  /** Char offset where a 0-based source line begins. */
+  private offsetOfLine(content: string, line: number): number {
+    if (line <= 0) return 0;
+    let idx = 0;
+    for (let i = 0; i < line; i++) {
+      const nl = content.indexOf("\n", idx);
+      if (nl === -1) return content.length;
+      idx = nl + 1;
+    }
+    return idx;
+  }
+
+  /**
+   * Count unlinked occurrences of `surface` in content[from, offset), giving the
+   * occurrence's index among the rendered (non-link) matches in that range.
+   */
+  private countMatchesBefore(content: string, surface: string, from: number, offset: number): number {
+    const lower = content.toLowerCase();
+    const target = surface.toLowerCase();
+    let count = 0;
+    let cursor = from;
+    while (cursor < offset) {
+      const idx = lower.indexOf(target, cursor);
+      if (idx === -1 || idx >= offset) break;
+      if (!isInsideWikilink(content, idx)) count++;
+      cursor = idx + target.length;
+    }
+    return count;
+  }
+
+  /**
+   * Count wikilinks to `linkTarget` in content[from, offset), giving the link's
+   * index among the rendered link elements for that target in that range.
+   */
+  private countLinksBefore(content: string, linkTarget: string, from: number, offset: number): number {
+    if (!linkTarget) return 0;
+    const lower = content.toLowerCase();
+    const needle = `[[${linkTarget.toLowerCase()}`;
+    let count = 0;
+    let cursor = from;
+    while (cursor < offset) {
+      const idx = lower.indexOf(needle, cursor);
+      if (idx === -1 || idx >= offset) break;
+      count++;
+      cursor = idx + needle.length;
+    }
+    return count;
+  }
+
+  /**
+   * Find ranges over rendered internal-link elements pointing at `linkTarget`.
+   */
+  private findLinkRanges(root: HTMLElement, linkTarget: string): Range[] {
+    const ranges: Range[] = [];
+    if (!linkTarget) return ranges;
+    const target = linkTarget.toLowerCase();
+    root.querySelectorAll("a.internal-link, a[data-href]").forEach((a) => {
+      const href = (a.getAttribute("data-href") || a.getAttribute("href") || "").toLowerCase();
+      if (href === target || href.split("#")[0] === target) {
+        const range = document.createRange();
+        range.selectNodeContents(a);
+        ranges.push(range);
+      }
+    });
+    return ranges;
+  }
+
+  /**
+   * Find ranges of `surface` in the rendered text under `root`, skipping links,
+   * code, and the properties (frontmatter) widget — none of which are plain
+   * unlinked body mentions.
+   */
+  private findPreviewRanges(root: HTMLElement, surface: string): Range[] {
+    const target = surface.toLowerCase();
+    const ranges: Range[] = [];
+    if (target.length < 2) return ranges;
+
+    // Skip text that isn't a plain body mention: links, code, the properties
+    // widget, the inline title (rendered from the filename, not the source),
+    // and embedded/transcluded notes.
+    const skip = "a, code, pre, .metadata-container, .frontmatter, .inline-title, .markdown-embed";
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: (node) =>
+        node.parentElement?.closest(skip)
+          ? NodeFilter.FILTER_REJECT
+          : NodeFilter.FILTER_ACCEPT,
+    });
+
+    let node: Node | null;
+    while ((node = walker.nextNode())) {
+      const text = (node.textContent || "").toLowerCase();
+      let from = 0;
+      while (true) {
+        const idx = text.indexOf(target, from);
+        if (idx === -1) break;
+        const range = document.createRange();
+        range.setStart(node, idx);
+        range.setEnd(node, idx + surface.length);
+        ranges.push(range);
+        from = idx + surface.length;
+      }
+    }
+    return ranges;
   }
 
   private flashHighlight(editor: any, fromOffset: number, toOffset: number) {

@@ -365,10 +365,10 @@
   100% { background-color: transparent; }
 }
 
-/* Jump Highlight (reading mode — flashes the rendered section) */
-.portfolio-preview-flash {
-  border-radius: 4px;
-  animation: portfolio-highlight-fade 2.5s ease-out forwards;
+/* Jump Highlight (reading mode — precise matched text via Custom Highlight API) */
+::highlight(portfolio-jump) {
+  background-color: var(--portfolio-highlight-color, rgba(255, 215, 0, 0.45));
+  color: var(--text-normal);
 }
 
 /* Status Bar */
