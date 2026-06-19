@@ -14,7 +14,7 @@ A table of all configured taxa types. Each row has these fields:
 | Template | Optional path to a template file used as the starting content for new files of this taxon. Supports `{{title}}` (the entity name, also `{{name}}`/`{{alias}}`), `{{prefix}}`, and `{{label}}` |
 
 - **Add Taxa** — click the "Add Taxa" button below the table
-- **Restore defaults** — replace all mappings with the plugin defaults (after a confirmation). Resets configuration only; never moves or renames files
+- **Restore defaults** — restore the default set of taxa prefixes and labels (after a confirmation). Your existing folder paths are kept for prefixes you already have; newly added taxa start with an empty folder. Never moves or renames files
 - **Edit** — change any field directly in the table
 - **Delete** — click the **×** button on a row
 

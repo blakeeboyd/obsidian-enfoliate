@@ -208,10 +208,19 @@ export class PortfolioSettingTab extends PluginSettingTab {
           .onClick(() => {
             new ConfirmModal(
               this.app,
-              "Replace your current taxa mappings with the plugin defaults? Folders and any custom taxa you added will be lost. This does not move or rename any files.",
+              "Restore the default set of taxa (prefixes and labels)? Your existing folder paths are kept; newly added taxa start with an empty folder for you to set. This does not move or rename any files.",
               "Restore defaults",
               async () => {
-                this.plugin.settings.taxaMappings = DEFAULT_TAXA_MAPPINGS.map((m) => ({ ...m }));
+                // Restore the default prefix/label set, but keep the folder the
+                // user already assigned to each prefix; leave new taxa blank.
+                const folders = new Map(
+                  this.plugin.settings.taxaMappings.map((m) => [m.prefix, m.folder])
+                );
+                this.plugin.settings.taxaMappings = DEFAULT_TAXA_MAPPINGS.map((m) => ({
+                  prefix: m.prefix,
+                  label: m.label,
+                  folder: folders.get(m.prefix) ?? "",
+                }));
                 await this.plugin.saveSettings();
                 this.display();
               }
