@@ -6,12 +6,18 @@ export interface TaxaMapping {
 }
 
 /**
- * Where a Cmd/Ctrl+click on a sidebar item opens the note:
+ * How to open a taxa note:
  * - "replace": in the current tab (standard link behavior)
  * - "tab": in a new tab, then focus it
  * - "window": in a new window
  */
 export type OpenMode = "replace" | "tab" | "window";
+
+/**
+ * What a click (or modifier-click) on a sidebar item does: jump to the next
+ * occurrence in the document, or open the note in one of the three open modes.
+ */
+export type ClickAction = "jump" | OpenMode;
 
 export interface EnfoliateSettings {
   taxaMappings: TaxaMapping[];
@@ -19,7 +25,8 @@ export interface EnfoliateSettings {
   createFolderIfMissing: boolean;
   sidebarOpen: boolean;
   autoScan: boolean;
-  openMode: OpenMode;
+  clickAction: ClickAction;
+  modClickAction: ClickAction;
   matchLinkedAliases: boolean;
   blocklist: string[];
   highlightOnJump: boolean;

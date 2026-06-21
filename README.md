@@ -49,7 +49,7 @@ The sidebar refreshes on file switch, content edits, and selection changes. Sele
 
 ### Navigation
 
-- **Jump-to-occurrence** — click any taxa name in the sidebar to jump to the next occurrence, cycling through all positions with an optional highlight flash. Cmd/Ctrl+click opens that note instead — in the current tab, a new tab, or a new window, per settings.
+- **Click actions** — click a taxa name to jump to its next occurrence (cycling through all positions with an optional highlight flash) or to open the note. The click and Cmd/Ctrl+click actions are each configurable: jump in the document, or open in the current tab, a new tab, or a new window. By default a click jumps and Cmd/Ctrl+click opens in the current tab.
 
 [Navigation docs →](docs/navigation.md)
 
@@ -105,7 +105,8 @@ Copy `main.js`, `manifest.json`, and `styles.css` to your vault's `.obsidian/plu
 | Create folders if missing | On | Create target folders that don't exist |
 | Open sidebar on startup | Off | Auto-open the Enfoliate sidebar on plugin load |
 | Auto-scan | On | Scan the active note automatically; turn off to scan only via the Scan button |
-| Cmd/Ctrl+click opens note | In the current tab | Where modifier-click on a sidebar item opens the note: current tab, new tab, or new window |
+| Click action | Jump to it in the document | What a click on a sidebar item does: jump, or open in current tab / new tab / new window |
+| Cmd/Ctrl+click action | Open in the current tab | What a modifier-click does: jump, or open in current tab / new tab / new window |
 | Match aliases of linked files | Off | Fold unlinked alias mentions of already-linked files into their Linked Taxa entry |
 | Highlight on jump | On | Flash highlight when jumping to an occurrence |
 | Highlight color | Yellow | Custom color for the jump highlight |

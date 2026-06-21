@@ -37,7 +37,8 @@ Changes take effect immediately after saving.
 | Select text on jump | Off | Select the matched text in the editor when jumping to an occurrence (edit mode only) |
 | Scope to selection | On | When you select text in the editor, narrow the sidebar to taxa within that selection. Off scans the whole note |
 | Show search bar | On | Show the filter box at the top of the Enfoliate sidebar |
-| Cmd/Ctrl+click opens note | In the current tab | Where a Cmd/Ctrl+click on a sidebar item opens that note: the current tab (standard link), a new tab (focused), or a new window. A plain click still jumps to the occurrence |
+| Click action | Jump to it in the document | What a click on a sidebar item does: jump to its next occurrence, or open the note in the current tab, a new tab, or a new window |
+| Cmd/Ctrl+click action | Open in the current tab | What a Cmd (macOS) / Ctrl (Windows/Linux) + click on a sidebar item does: jump, or open in the current tab, a new tab, or a new window |
 
 ## Highlighting
 

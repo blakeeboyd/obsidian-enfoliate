@@ -119,13 +119,26 @@ export class SuggestionsView extends ItemView {
   }
 
   /**
-   * Open a taxa note for a Cmd/Ctrl+click on a sidebar item, honoring the
-   * "Cmd/Ctrl+click opens note" setting: in the current tab, a new tab, or a
-   * new window. Resolution and main-area targeting are handled by openLinkText.
+   * Run the configured action for a click on a sidebar item. A plain click uses
+   * the "Click action" setting; a Cmd/Ctrl+click uses "Cmd/Ctrl+click action".
+   * Either jumps to the next occurrence (via `jump`) or opens the taxa note in
+   * the current tab, a new tab, or a new window. openLinkText handles link
+   * resolution and main-area targeting.
    */
-  private openTaxaNote(linkText: string, sourcePath: string) {
-    const mode = this.plugin.settings.openMode;
-    const newLeaf = mode === "replace" ? false : mode;
+  private handleItemClick(
+    evt: MouseEvent,
+    linkText: string,
+    sourcePath: string,
+    jump: () => void
+  ) {
+    const action = evt.metaKey || evt.ctrlKey
+      ? this.plugin.settings.modClickAction
+      : this.plugin.settings.clickAction;
+    if (action === "jump") {
+      jump();
+      return;
+    }
+    const newLeaf = action === "replace" ? false : action;
     this.app.workspace.openLinkText(linkText, sourcePath, newLeaf, { active: true });
   }
 
@@ -741,13 +754,9 @@ export class SuggestionsView extends ItemView {
       cls: "enfoliate-match-text enfoliate-clickable",
     });
     nameSpan.addEventListener("click", (evt) => {
-      // Cmd (macOS) / Ctrl (Windows/Linux) + click opens the taxa note per the
-      // configured open mode; a plain click jumps to the occurrence.
-      if (evt.metaKey || evt.ctrlKey) {
-        this.openTaxaNote(match.fileName, noteFile.path);
-        return;
-      }
-      this.jumpToOccurrence(match.filePath, match.positions, fullContent, noteFile, match.matchText.length);
+      this.handleItemClick(evt, match.fileName, noteFile.path, () => {
+        this.jumpToOccurrence(match.filePath, match.positions, fullContent, noteFile, match.matchText.length);
+      });
     });
 
     const actions = top.createDiv("enfoliate-suggestion-actions");
@@ -980,17 +989,15 @@ export class SuggestionsView extends ItemView {
           text: item.displayName,
           cls: "enfoliate-linked-name enfoliate-clickable",
         });
-        if (item.positions.length > 0) {
-          const jumpKey = `linked:${item.link}`;
-          nameSpan.addEventListener("click", (evt) => {
-            // Cmd (macOS) / Ctrl (Windows/Linux) + click opens the linked note per
-            // the configured open mode; a plain click jumps to the occurrence.
-            if (evt.metaKey || evt.ctrlKey) {
-              this.openTaxaNote(item.link, file.path);
-              return;
+        const jumpKey = `linked:${item.link}`;
+        nameSpan.addEventListener("click", (evt) => {
+          this.handleItemClick(evt, item.link, file.path, () => {
+            if (item.positions.length > 0) {
+              this.jumpToOccurrence(jumpKey, item.positions, content, file, item.displayName.length);
             }
-            this.jumpToOccurrence(jumpKey, item.positions, content, file, item.displayName.length);
           });
+        });
+        if (item.positions.length > 0) {
           info.createSpan({
             text:
               item.unlinkedCount > 0

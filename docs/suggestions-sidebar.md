@@ -63,7 +63,7 @@ Select text in the editor to scope the scan to just that selection. Deselect to 
 
 ## Jump-to-occurrence
 
-Clicking a taxa name (in any section) jumps to the next occurrence in the document. Clicking again jumps to the next one, cycling through all positions. **Cmd+click** (macOS) or **Ctrl+click** (Windows/Linux) instead opens that taxa note — in the current tab, a new tab, or a new window, set by **Settings → Enfoliate → Cmd/Ctrl+click opens note**. The jump:
+By default, clicking a taxa name (in any section) jumps to the next occurrence in the document, cycling through all positions, and **Cmd+click** (macOS) / **Ctrl+click** (Windows/Linux) opens that taxa note in the current tab. Both actions are configurable in **Settings → Enfoliate** (Click action, Cmd/Ctrl+click action): each can jump, or open the note in the current tab, a new tab, or a new window. When a click jumps, it:
 
 1. Focuses the editor
 2. Sets the cursor at the occurrence

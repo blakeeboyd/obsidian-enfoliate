@@ -1,6 +1,6 @@
 import { App, Modal, PluginSettingTab, Setting, AbstractInputSuggest, TFile, TFolder } from "obsidian";
 import type EnfoliatePlugin from "./main";
-import { TaxaMapping, OpenMode } from "./types";
+import { TaxaMapping, ClickAction } from "./types";
 import { DEFAULT_TAXA_MAPPINGS } from "./taxa";
 
 class ConfirmModal extends Modal {
@@ -388,18 +388,35 @@ export class EnfoliateSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Cmd/Ctrl+click opens note")
+      .setName("Click action")
+      .setDesc("What a click on a sidebar item does.")
+      .addDropdown((dd) =>
+        dd
+          .addOption("jump", "Jump to it in the document")
+          .addOption("replace", "Open in the current tab")
+          .addOption("tab", "Open in a new tab")
+          .addOption("window", "Open in a new window")
+          .setValue(this.plugin.settings.clickAction)
+          .onChange(async (value) => {
+            this.plugin.settings.clickAction = value as ClickAction;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Cmd/Ctrl+click action")
       .setDesc(
-        "Where a Cmd (macOS) / Ctrl (Windows/Linux) + click on a sidebar item opens that note. A plain click still jumps to its occurrence."
+        "What a Cmd (macOS) / Ctrl (Windows/Linux) + click on a sidebar item does."
       )
       .addDropdown((dd) =>
         dd
-          .addOption("replace", "In the current tab")
-          .addOption("tab", "In a new tab")
-          .addOption("window", "In a new window")
-          .setValue(this.plugin.settings.openMode)
+          .addOption("jump", "Jump to it in the document")
+          .addOption("replace", "Open in the current tab")
+          .addOption("tab", "Open in a new tab")
+          .addOption("window", "Open in a new window")
+          .setValue(this.plugin.settings.modClickAction)
           .onChange(async (value) => {
-            this.plugin.settings.openMode = value as OpenMode;
+            this.plugin.settings.modClickAction = value as ClickAction;
             await this.plugin.saveSettings();
           })
       );
