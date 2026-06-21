@@ -554,9 +554,30 @@ export class SuggestionsView extends ItemView {
         attr: { placeholder: "Filter taxa..." },
       });
       searchInput.value = this.searchQuery;
+
+      // Clear button — shown only while there's a query.
+      const clearBtn = searchWrap.createEl("button", {
+        cls: "enfoliate-search-clear",
+        attr: { "aria-label": "Clear search" },
+      });
+      setIcon(clearBtn, "x");
+      const syncClear = () => {
+        clearBtn.style.display = searchInput.value ? "" : "none";
+      };
+      syncClear();
+
       searchInput.addEventListener("input", () => {
         this.searchQuery = searchInput.value;
+        syncClear();
         this.applyFilter();
+      });
+
+      clearBtn.addEventListener("click", () => {
+        searchInput.value = "";
+        this.searchQuery = "";
+        syncClear();
+        this.applyFilter();
+        searchInput.focus();
       });
     }
 

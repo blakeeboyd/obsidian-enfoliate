@@ -54,11 +54,37 @@
 
 .enfoliate-search {
   padding: 8px 12px 4px 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .enfoliate-search-input {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   font-size: 12px;
+}
+
+.enfoliate-search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 2px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.enfoliate-search-clear:hover {
+  color: var(--text-normal);
+}
+
+.enfoliate-search-clear svg {
+  width: 14px;
+  height: 14px;
 }
 
 .enfoliate-suggestions-header h4 {
