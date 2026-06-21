@@ -11,7 +11,7 @@ In the [suggestions sidebar](suggestions-sidebar.md), clicking on any taxa name 
 
 Clicking repeatedly cycles through all occurrences. When you reach the last one, the next click wraps back to the first.
 
-**Cmd+click** (macOS) or **Ctrl+click** (Windows/Linux) on a name opens that taxa note in a new window instead of jumping.
+**Cmd+click** (macOS) or **Ctrl+click** (Windows/Linux) on a name opens that taxa note instead of jumping. Where it opens — the current tab (default), a new tab, or a new window — is set by **Settings → Enfoliate → Cmd/Ctrl+click opens note**.
 
 ### What happens on jump
 

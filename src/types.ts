@@ -5,12 +5,21 @@ export interface TaxaMapping {
   template?: string;
 }
 
+/**
+ * Where a Cmd/Ctrl+click on a sidebar item opens the note:
+ * - "replace": in the current tab (standard link behavior)
+ * - "tab": in a new tab, then focus it
+ * - "window": in a new window
+ */
+export type OpenMode = "replace" | "tab" | "window";
+
 export interface EnfoliateSettings {
   taxaMappings: TaxaMapping[];
   autoMoveEnabled: boolean;
   createFolderIfMissing: boolean;
   sidebarOpen: boolean;
   autoScan: boolean;
+  openMode: OpenMode;
   matchLinkedAliases: boolean;
   blocklist: string[];
   highlightOnJump: boolean;

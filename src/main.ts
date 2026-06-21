@@ -19,6 +19,7 @@ const DEFAULT_SETTINGS: EnfoliateSettings = {
   createFolderIfMissing: true,
   sidebarOpen: false,
   autoScan: true,
+  openMode: "replace",
   matchLinkedAliases: false,
   blocklist: [],
   highlightOnJump: true,

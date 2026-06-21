@@ -1,6 +1,6 @@
 import { App, Modal, PluginSettingTab, Setting, AbstractInputSuggest, TFile, TFolder } from "obsidian";
 import type EnfoliatePlugin from "./main";
-import { TaxaMapping } from "./types";
+import { TaxaMapping, OpenMode } from "./types";
 import { DEFAULT_TAXA_MAPPINGS } from "./taxa";
 
 class ConfirmModal extends Modal {
@@ -384,6 +384,23 @@ export class EnfoliateSettingTab extends PluginSettingTab {
             this.plugin.settings.showSearchBar = value;
             await this.plugin.saveSettings();
             this.plugin.refreshSuggestionsView();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Cmd/Ctrl+click opens note")
+      .setDesc(
+        "Where a Cmd (macOS) / Ctrl (Windows/Linux) + click on a sidebar item opens that note. A plain click still jumps to its occurrence."
+      )
+      .addDropdown((dd) =>
+        dd
+          .addOption("replace", "In the current tab")
+          .addOption("tab", "In a new tab")
+          .addOption("window", "In a new window")
+          .setValue(this.plugin.settings.openMode)
+          .onChange(async (value) => {
+            this.plugin.settings.openMode = value as OpenMode;
+            await this.plugin.saveSettings();
           })
       );
 
