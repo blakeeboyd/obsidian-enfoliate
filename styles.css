@@ -82,9 +82,16 @@
   color: var(--text-muted);
 }
 
+.enfoliate-search-clear:hover,
+.enfoliate-search-clear:focus,
+.enfoliate-search-clear:focus-visible,
+.enfoliate-search-clear:active {
+  background: transparent;
+  box-shadow: none;
+}
+
 .enfoliate-search-clear:hover {
   color: var(--text-normal);
-  background: transparent;
 }
 
 .enfoliate-search-clear svg {
