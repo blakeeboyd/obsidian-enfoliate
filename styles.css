@@ -64,6 +64,8 @@
 .enfoliate-suggestions-header h4 {
   margin: 0;
   font-size: 14px;
+  /* Follow the accent color chosen in Settings -> Appearance. */
+  color: var(--text-accent);
 }
 
 .enfoliate-scope-indicator {
