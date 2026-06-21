@@ -191,6 +191,16 @@ class HowToModal extends Modal {
     note.appendText(
       "If a taxon has no folder specified, its new files are created at the vault root and are not auto-moved. Set a folder to keep that type organized."
     );
+
+    const credit = contentEl.createEl("p", {
+      cls: "setting-item-description",
+    });
+    credit.appendText("Icon from ");
+    credit.createEl("a", {
+      text: "the Noun Project",
+      href: "https://thenounproject.com/icon/booklet-1624270/",
+    });
+    credit.appendText(".");
   }
 
   onClose() {
