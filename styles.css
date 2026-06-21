@@ -350,15 +350,6 @@
   color: var(--text-normal);
 }
 
-/* Status Bar */
-.enfoliate-status-bar {
-  cursor: pointer;
-}
-
-.enfoliate-status-bar:hover {
-  color: var(--text-normal);
-}
-
 .enfoliate-ignore-btn {
   font-size: 10px;
   padding: 2px 6px;

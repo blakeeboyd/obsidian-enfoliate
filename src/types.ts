@@ -11,7 +11,6 @@ export interface EnfoliateSettings {
   createFolderIfMissing: boolean;
   autoCreateTaxaFolder: boolean;
   sidebarOpen: boolean;
-  statusBarEnabled: boolean;
   matchLinkedAliases: boolean;
   blocklist: string[];
   highlightOnJump: boolean;

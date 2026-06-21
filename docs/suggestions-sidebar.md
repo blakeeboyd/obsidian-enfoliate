@@ -2,7 +2,7 @@
 
 The suggestions sidebar is Enfoliate's main analysis panel. It shows what's already linked in a note and what could be linked.
 
-Open it with the **Open suggestions sidebar** command, by clicking the status bar taxa count, or by enabling "Open suggestions on startup" in settings.
+Open it with the **Open Enfoliate sidebar** command, or by enabling "Open sidebar on startup" in settings.
 
 ## Sections
 

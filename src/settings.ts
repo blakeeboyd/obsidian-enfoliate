@@ -385,21 +385,6 @@ export class EnfoliateSettingTab extends PluginSettingTab {
         })
       );
 
-    // --- Status Bar ---
-    containerEl.createEl("h2", { text: "Status Bar" });
-
-    new Setting(containerEl)
-      .setName("Show status bar")
-      .setDesc("Show taxa link counts in the status bar. Click to see a summary. Requires plugin reload.")
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.statusBarEnabled)
-          .onChange(async (value) => {
-            this.plugin.settings.statusBarEnabled = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
     // --- Blocklist ---
     containerEl.createEl("h2", { text: "Blocklist" });
 

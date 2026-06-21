@@ -48,12 +48,6 @@ Settings for the flash highlight shown when you click a name in the sidebar to j
 | Highlight duration | 2.5s | How long the jump highlight stays before fading (0.5-10 seconds) |
 | Highlight color | Yellow | Color picker for the jump highlight (reset button restores default) |
 
-## Status Bar
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| Show status bar | On | Display taxa link counts in Obsidian's status bar. Requires plugin reload to take effect. |
-
 ## Blocklist
 
 Terms that have been permanently ignored via the "Ignore" button in the suggestions sidebar. Blocklisted terms never appear as suggestions.

@@ -19,7 +19,6 @@ const DEFAULT_SETTINGS: EnfoliateSettings = {
   createFolderIfMissing: true,
   autoCreateTaxaFolder: true,
   sidebarOpen: false,
-  statusBarEnabled: true,
   matchLinkedAliases: false,
   blocklist: [],
   highlightOnJump: true,
@@ -33,7 +32,6 @@ const DEFAULT_SETTINGS: EnfoliateSettings = {
 
 export default class EnfoliatePlugin extends Plugin {
   settings: EnfoliateSettings = DEFAULT_SETTINGS;
-  private statusBarEl: HTMLElement | null = null;
 
   async onload() {
     await this.loadSettings();
@@ -44,21 +42,7 @@ export default class EnfoliatePlugin extends Plugin {
       SUGGESTIONS_VIEW_TYPE,
       (leaf) => new SuggestionsView(leaf, this)
     );
-    if (this.settings.statusBarEnabled) {
-      this.statusBarEl = this.addStatusBarItem();
-      this.statusBarEl.addClass("enfoliate-status-bar");
-      this.statusBarEl.addClass("mod-clickable");
-      this.statusBarEl.addEventListener("click", () => {
-        this.activateSuggestionsView();
-      });
-      this.registerEvent(
-        this.app.workspace.on("active-leaf-change", () => {
-          this.updateStatusBar();
-        })
-      );
-    }
     this.app.workspace.onLayoutReady(() => {
-      this.updateStatusBar();
       if (this.settings.sidebarOpen) {
         this.activateSuggestionsView();
       }
@@ -94,7 +78,6 @@ export default class EnfoliatePlugin extends Plugin {
             detectedTaxon,
             this.settings
           ).then(() => {
-            this.updateStatusBar();
             this.refreshSuggestionsView();
           });
         } else {
@@ -109,7 +92,6 @@ export default class EnfoliatePlugin extends Plugin {
                 taxon,
                 this.settings
               ).then(() => {
-                this.updateStatusBar();
                 this.refreshSuggestionsView();
               });
             }
@@ -229,45 +211,6 @@ export default class EnfoliatePlugin extends Plugin {
         view.refresh();
       }
     }
-  }
-
-  updateStatusBar() {
-    if (!this.statusBarEl) return;
-    const file = this.app.workspace.getActiveFile();
-    if (!file) {
-      this.statusBarEl.setText("");
-      return;
-    }
-
-    const cache = this.app.metadataCache.getFileCache(file);
-    if (!cache || !cache.links) {
-      this.statusBarEl.setText("");
-      return;
-    }
-
-    const counts: Record<string, number> = {};
-    for (const mapping of this.settings.taxaMappings) {
-      counts[mapping.prefix] = 0;
-    }
-
-    for (const link of cache.links) {
-      const linkText = link.link;
-      for (const mapping of this.settings.taxaMappings) {
-        if (linkText.startsWith(mapping.prefix)) {
-          counts[mapping.prefix]++;
-          break;
-        }
-      }
-    }
-
-    const parts: string[] = [];
-    for (const mapping of this.settings.taxaMappings) {
-      if (counts[mapping.prefix] > 0) {
-        parts.push(`${counts[mapping.prefix]}${mapping.prefix}`);
-      }
-    }
-
-    this.statusBarEl.setText(parts.length > 0 ? parts.join(" ") : "");
   }
 
   async loadSettings() {

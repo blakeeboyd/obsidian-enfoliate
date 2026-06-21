@@ -2,14 +2,6 @@
 
 Enfoliate provides several ways to move between your notes and find where entities are mentioned.
 
-## Status bar
-
-The status bar shows a compact count of taxa links in the active note. For example, `3@ 2+ 1~` means three People links, two Concept links, and one Place link.
-
-Click the status bar to open the suggestions sidebar.
-
-The status bar updates automatically when you switch files. Toggle it in **Settings → Enfoliate → Show status bar** (requires plugin reload).
-
 ## Jump-to-occurrence
 
 In the [suggestions sidebar](suggestions-sidebar.md), clicking on any taxa name jumps to its next occurrence in the editor. This works for:

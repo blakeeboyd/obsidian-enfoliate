@@ -47,7 +47,6 @@ The sidebar refreshes on file switch, content edits, and selection changes. Sele
 ### Navigation
 
 - **Jump-to-occurrence** — click any taxa name in the sidebar to jump to the next occurrence, cycling through all positions with an optional highlight flash
-- **Status bar** — shows a count of taxa links in the active note (e.g. `3@ 2+ 1~`). Click to open the sidebar.
 
 [Navigation docs →](docs/navigation.md)
 
@@ -103,7 +102,6 @@ Copy `main.js`, `manifest.json`, and `styles.css` to your vault's `.obsidian/plu
 | Create folders if missing | On | Create target folders that don't exist |
 | Auto-create folder for taxa | On | When a taxon has no folder set, create one named after the taxon |
 | Open sidebar on startup | Off | Auto-open the Enfoliate sidebar on plugin load |
-| Show status bar | On | Taxa counts in the status bar (reload required) |
 | Match aliases of linked files | Off | Fold unlinked alias mentions of already-linked files into their Linked Taxa entry |
 | Highlight on jump | On | Flash highlight when jumping to an occurrence |
 | Highlight color | Yellow | Custom color for the jump highlight |
@@ -114,7 +112,7 @@ Copy `main.js`, `manifest.json`, and `styles.css` to your vault's `.obsidian/plu
 - [Taxa System](docs/taxa-system.md) — prefixes, folders, auto-move, aliases
 - [Smart Linking](docs/smart-linking.md) — link creation, how linking works
 - [Suggestions Sidebar](docs/suggestions-sidebar.md) — linked taxa, unlinked mentions, actions, jump behavior
-- [Navigation](docs/navigation.md) — status bar, jump-to-occurrence, highlight, commands
+- [Navigation](docs/navigation.md) — jump-to-occurrence, highlight, commands
 - [Settings Reference](docs/settings.md) — every setting explained
 
 ## Development

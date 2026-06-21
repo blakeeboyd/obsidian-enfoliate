@@ -779,7 +779,6 @@ export class SuggestionsView extends ItemView {
     new Notice(
       `Linked ${match.alias} (${count} ${count > 1 ? "occurrences" : "occurrence"})`
     );
-    this.plugin.updateStatusBar();
     this.refresh();
   }
 
@@ -804,7 +803,6 @@ export class SuggestionsView extends ItemView {
     const count = (content.match(pattern) || []).length;
     await this.app.vault.modify(noteFile, newContent);
     new Notice(`Unlinked ${displayName} (${count} ${count > 1 ? "occurrences" : "occurrence"})`);
-    this.plugin.updateStatusBar();
     this.refresh();
   }
 
