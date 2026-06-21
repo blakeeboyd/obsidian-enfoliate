@@ -8,15 +8,18 @@ When a file's name starts with a taxa prefix, Enfoliate knows what kind of knowl
 
 ## Default taxa
 
-| Prefix | Label         | Default folder               |
-|--------|---------------|------------------------------|
-| `@`    | People        | `00 knowledge/people`        |
-| `+`    | Concepts      | `00 knowledge/concepts`      |
-| `~`    | Places        | `00 knowledge/places`        |
-| `•`    | Projects      | `00 knowledge/projects`      |
-| `©`    | Works         | `00 knowledge/works`         |
-| `º`    | Organizations | `00 knowledge/organizations` |
-| `∞`    | Events        | `00 knowledge/events`        |
+Enfoliate ships with these prefixes and labels. Folders start unset, so you assign each taxon's folder in settings to match your vault. Until a taxon has a folder, its files are created at the vault root and aren't auto-moved.
+
+| Prefix | Label         | Default folder |
+|--------|---------------|----------------|
+| `@`    | People        | (unset)        |
+| `+`    | Concepts      | (unset)        |
+| `~`    | Places        | (unset)        |
+| `•`    | Projects      | (unset)        |
+| `©`    | Works         | (unset)        |
+| `¡`    | Images        | (unset)        |
+| `º`    | Organizations | (unset)        |
+| `∞`    | Events        | (unset)        |
 
 ## Customizing taxa
 

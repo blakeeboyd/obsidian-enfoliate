@@ -1,14 +1,17 @@
 import { TaxaMapping } from "./types";
 
+// Default taxa ship with prefixes and labels only; the user assigns a folder
+// (and optional template) per taxon. A taxon with no folder set leaves its
+// files at the vault root and isn't auto-moved.
 export const DEFAULT_TAXA_MAPPINGS: TaxaMapping[] = [
-  { prefix: "@", label: "People", folder: "00 knowledge/people" },
-  { prefix: "+", label: "Concepts", folder: "00 knowledge/concepts" },
-  { prefix: "~", label: "Places", folder: "00 knowledge/places" },
-  { prefix: "\u2022", label: "Projects", folder: "00 knowledge/projects" },
-  { prefix: "\u00A9", label: "Works", folder: "00 knowledge/works" },
-  { prefix: "\u00A1", label: "Images", folder: "00 knowledge/images" },
-  { prefix: "\u00BA", label: "Organizations", folder: "00 knowledge/organizations" },
-  { prefix: "\u221E", label: "Events", folder: "00 knowledge/events" },
+  { prefix: "@", label: "People", folder: "" },
+  { prefix: "+", label: "Concepts", folder: "" },
+  { prefix: "~", label: "Places", folder: "" },
+  { prefix: "\u2022", label: "Projects", folder: "" },
+  { prefix: "\u00A9", label: "Works", folder: "" },
+  { prefix: "\u00A1", label: "Images", folder: "" },
+  { prefix: "\u00BA", label: "Organizations", folder: "" },
+  { prefix: "\u221E", label: "Events", folder: "" },
 ];
 
 export function findTaxonByPrefix(

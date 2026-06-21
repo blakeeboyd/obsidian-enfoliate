@@ -6,15 +6,18 @@ Enfoliate uses prefix characters to classify knowledge files by type. Each prefi
 
 ## Default taxa
 
-| Prefix | Label         | Default folder               |
-|--------|---------------|------------------------------|
-| `@`    | People        | `00 knowledge/people`        |
-| `+`    | Concepts      | `00 knowledge/concepts`      |
-| `~`    | Places        | `00 knowledge/places`        |
-| `•`    | Projects      | `00 knowledge/projects`      |
-| `©`    | Works         | `00 knowledge/works`         |
-| `º`    | Organizations | `00 knowledge/organizations` |
-| `∞`    | Events        | `00 knowledge/events`        |
+Enfoliate ships with these prefixes and labels. Folders start unset — assign one per taxon in settings. A taxon with no folder leaves its files at the vault root and isn't auto-moved.
+
+| Prefix | Label         | Default folder |
+|--------|---------------|----------------|
+| `@`    | People        | (unset)        |
+| `+`    | Concepts      | (unset)        |
+| `~`    | Places        | (unset)        |
+| `•`    | Projects      | (unset)        |
+| `©`    | Works         | (unset)        |
+| `¡`    | Images        | (unset)        |
+| `º`    | Organizations | (unset)        |
+| `∞`    | Events        | (unset)        |
 
 All prefixes, labels, and folders are configurable in settings. [Full taxa system docs →](docs/taxa-system.md)
 
@@ -97,7 +100,7 @@ Copy `main.js`, `manifest.json`, and `styles.css` to your vault's `.obsidian/plu
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| Taxa Mappings | 7 defaults | Add, edit, or remove prefix/label/folder mappings |
+| Taxa Mappings | 8 prefixes, no folders | Add, edit, or remove prefix/label/folder mappings |
 | Auto-Move | On | Automatically move files to taxa folders |
 | Create folders if missing | On | Create target folders that don't exist |
 | Open sidebar on startup | Off | Auto-open the Enfoliate sidebar on plugin load |

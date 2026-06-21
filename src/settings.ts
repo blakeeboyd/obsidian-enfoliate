@@ -161,6 +161,43 @@ class FileSuggest extends AbstractInputSuggest<TFile> {
   }
 }
 
+class HowToModal extends Modal {
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+
+    contentEl.createEl("h2", { text: "How to use Enfoliate" });
+
+    const inspired = contentEl.createEl("p", {
+      cls: "setting-item-description",
+    });
+    inspired.appendText("Inspired by ");
+    inspired.createEl("a", {
+      text: "Stowe Boyd's Portfolio knowledge management system",
+      href: "https://www.workings.co/p/portfolio-a-knowledge-base-built",
+    });
+    inspired.appendText(".");
+
+    contentEl.createEl("p", {
+      text: "Enfoliate organizes notes by taxa: prefix characters that mark a note's type (@ for people, + for concepts, and so on). In Taxa Mappings, define each prefix and the folder its files belong in. When you create or rename a note whose name starts with a prefix, Enfoliate moves it to that taxon's folder.",
+    });
+
+    contentEl.createEl("p", {
+      text: "Optionally set a template file per taxon. New files of that type start from the template, with {{title}}, {{prefix}}, and {{label}} substituted.",
+    });
+
+    const note = contentEl.createEl("p");
+    note.createEl("strong", { text: "No folder set? " });
+    note.appendText(
+      "If a taxon has no folder specified, its new files are created at the vault root and are not auto-moved. Set a folder to keep that type organized."
+    );
+  }
+
+  onClose() {
+    this.contentEl.empty();
+  }
+}
+
 export class EnfoliateSettingTab extends PluginSettingTab {
   plugin: EnfoliatePlugin;
 
@@ -173,18 +210,20 @@ export class EnfoliateSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
+    // --- Title ---
+    containerEl.createEl("h1", { text: "Enfoliate" });
+
+    new Setting(containerEl)
+      .setName("How to use Enfoliate")
+      .setDesc("Taxa basics, templates, and where files go.")
+      .addButton((btn) =>
+        btn.setButtonText("Open guide").onClick(() => {
+          new HowToModal(this.app).open();
+        })
+      );
+
     // --- Taxa Mappings ---
     containerEl.createEl("h2", { text: "Taxa Mappings" });
-
-    const attribution = containerEl.createEl("p", {
-      cls: "setting-item-description",
-    });
-    attribution.appendText("Inspired by ");
-    attribution.createEl("a", {
-      text: "Stowe Boyd's Portfolio knowledge management system",
-      href: "https://www.workings.co/p/portfolio-a-knowledge-base-built",
-    });
-    attribution.appendText(". Define prefix characters and their target folders. Files starting with a prefix will be auto-moved to the corresponding folder. Optionally set a template file per taxa; new files of that type start from the template, with {{title}}, {{prefix}}, and {{label}} substituted.");
 
     const mappingsContainer = containerEl.createDiv("enfoliate-taxa-mappings");
     this.renderTaxaMappings(mappingsContainer);
