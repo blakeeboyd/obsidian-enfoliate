@@ -5,6 +5,7 @@ import type EnfoliatePlugin from "../main";
 import { UnlinkedMatch, TaxaMapping, MatchPosition } from "../types";
 import { findUnlinkedMatches, findFileMatchPositions, bodyStartOffset, isInsideWikilink } from "../services/unlinked-matcher";
 import { stripPrefix } from "../taxa";
+import { ENFOLIATE_ICON_ID } from "../icon";
 
 const addHighlight = StateEffect.define<{ from: number; to: number }>();
 const clearHighlight = StateEffect.define<null>();
@@ -54,7 +55,7 @@ export class SuggestionsView extends ItemView {
   }
 
   getIcon(): string {
-    return "square-pilcrow";
+    return ENFOLIATE_ICON_ID;
   }
 
   async onOpen() {

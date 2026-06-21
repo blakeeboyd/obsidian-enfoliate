@@ -1,7 +1,8 @@
-import { Notice, Plugin, TAbstractFile, TFile, MarkdownView } from "obsidian";
+import { Notice, Plugin, TAbstractFile, TFile, MarkdownView, addIcon } from "obsidian";
 import { EnfoliateSettings, TaxaMapping } from "./types";
 import { DEFAULT_TAXA_MAPPINGS, findTaxonByPrefix } from "./taxa";
 import { EnfoliateSettingTab } from "./settings";
+import { ENFOLIATE_ICON_ID, ENFOLIATE_ICON_SVG } from "./icon";
 import {
   createTaxaLink,
   ensureFolderExists,
@@ -34,6 +35,7 @@ export default class EnfoliatePlugin extends Plugin {
 
   async onload() {
     await this.loadSettings();
+    addIcon(ENFOLIATE_ICON_ID, ENFOLIATE_ICON_SVG);
     this.addSettingTab(new EnfoliateSettingTab(this.app, this));
     this.registerCommands();
     this.registerAutoMover();
