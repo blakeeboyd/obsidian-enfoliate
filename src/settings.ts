@@ -193,7 +193,7 @@ class HowToModal extends Modal {
     );
 
     const clicks = contentEl.createEl("p");
-    clicks.createEl("strong", { text: "Clicking a name. " });
+    clicks.createEl("strong", { text: "Clicking a term. " });
     clicks.appendText(
       "By default, clicking a name jumps to its next occurrence in the note and Cmd/Ctrl+click opens the note. Both the click and Cmd/Ctrl+click actions are configurable under Click Actions (jump, or open in the current tab, a new tab, or a new window)."
     );
