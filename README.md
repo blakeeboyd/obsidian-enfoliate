@@ -6,7 +6,7 @@ Enfoliate uses prefix characters to classify knowledge files by type. Each prefi
 
 ## Default taxa
 
-Enfoliate ships with these prefixes and labels. Folders start unset — assign one per taxon in settings. A taxon with no folder leaves its files at the vault root and isn't auto-moved.
+Enfoliate ships with these prefixes and labels. Folders start unset; assign one per taxon in settings. A taxon with no folder leaves its files at the vault root and isn't auto-moved.
 
 | Prefix | Label         | Default folder |
 |--------|---------------|----------------|
@@ -33,12 +33,12 @@ Select text and run **Create taxa link** from the command palette. If the text s
 
 A sidebar panel with two sections for the active note:
 
-- **Linked mentions** — all taxa currently linked in the note, grouped by type. Click a name to jump through occurrences (wikilinks and plain text). If a linked file still has plain-text mentions, link the remaining ones in one action.
-- **Unlinked mentions** — existing taxa files whose names or aliases appear in your note but aren't linked yet. Link individual mentions or all at once.
+- **Linked mentions:** all taxa currently linked in the note, grouped by type. Click a name to jump through occurrences (wikilinks and plain text). If a linked file still has plain-text mentions, link the remaining ones in one action.
+- **Unlinked mentions:** existing taxa files whose names or aliases appear in your note but aren't linked yet. Link individual mentions or all at once.
 
 Right-click any row for its full set of actions (link, open, unlink, ignore, dismiss, …); choose which of those also show as inline buttons under **Sidebar Buttons** in settings. The sidebar refreshes on file switch and content edits.
 
-> **Quote numeric aliases.** YAML reads an unquoted alias like `5.1` or `2024` as a number, not text. Enfoliate ignores non-string aliases so they can't break matching — which also means they won't be searched. Quote them in frontmatter to keep them working as aliases:
+> **Quote numeric aliases.** YAML reads an unquoted alias like `5.1` or `2024` as a number, not text. Enfoliate ignores non-string aliases, so they won't be searched. Quote them in frontmatter to keep them working as aliases:
 >
 > ```yaml
 > aliases:
@@ -49,7 +49,7 @@ Right-click any row for its full set of actions (link, open, unlink, ignore, dis
 
 ### Navigation
 
-- **Click actions** — click a taxa name to jump to its next occurrence (cycling through all positions with an optional highlight flash) or to open the note. The click and Cmd/Ctrl+click actions are each configurable: jump in the document, or open in the current tab, a new tab, or a new window. By default a click jumps and Cmd/Ctrl+click opens in the current tab.
+- **Click actions:** click a taxa name to jump to its next occurrence (cycling through all positions with an optional highlight flash) or to open the note. Each click modifier is configurable: jump in the document, or open in the current tab, a new tab, or a new window. By default a click jumps and Cmd/Ctrl+click opens in the current tab.
 
 [Navigation docs →](docs/navigation.md)
 
@@ -117,15 +117,15 @@ Copy `main.js`, `manifest.json`, and `styles.css` to your vault's `.obsidian/plu
 | Match aliases of linked files | Off | Fold unlinked alias mentions of already-linked files into their Linked Mentions entry |
 | Highlight on jump | On | Flash highlight when jumping to an occurrence |
 | Highlight color | Yellow | Custom color for the jump highlight |
-| Blocklist | — | Permanently ignored suggestion terms |
+| Blocklist | (none) | Permanently ignored suggestion terms |
 
 ## Documentation
 
-- [Taxa System](docs/taxa-system.md) — prefixes, folders, auto-move, aliases
-- [Smart Linking](docs/smart-linking.md) — link creation, how linking works
-- [Suggestions Sidebar](docs/suggestions-sidebar.md) — linked mentions, unlinked mentions, actions, jump behavior
-- [Navigation](docs/navigation.md) — jump-to-occurrence, highlight, commands
-- [Settings Reference](docs/settings.md) — every setting explained
+- [Taxa System](docs/taxa-system.md): prefixes, folders, auto-move, aliases
+- [Smart Linking](docs/smart-linking.md): link creation, how linking works
+- [Suggestions Sidebar](docs/suggestions-sidebar.md): linked mentions, unlinked mentions, actions, jump behavior
+- [Navigation](docs/navigation.md): jump-to-occurrence, highlight, commands
+- [Settings Reference](docs/settings.md): every setting explained
 
 ## Development
 

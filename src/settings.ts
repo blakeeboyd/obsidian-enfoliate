@@ -174,7 +174,7 @@ class HowToModal extends Modal {
     });
 
     contentEl.createEl("p", {
-      text: "Optionally set a template file per taxon. New files of that type start from the template, with {{title}}, {{prefix}}, and {{label}} substituted.",
+      text: "You can set a template file per taxon. New files of that type start from the template, with {{title}}, {{prefix}}, and {{label}} substituted.",
     });
 
     const sidebar = contentEl.createEl("p");

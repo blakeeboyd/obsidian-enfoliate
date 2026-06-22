@@ -19,8 +19,8 @@ If the file already exists (either in the taxa folder or at the vault root befor
 
 The [suggestions sidebar](suggestions-sidebar.md) offers one-click linking for unlinked mentions:
 
-- **Link** — wraps the first occurrence in a wikilink (creates the file if needed)
-- **Link all** — wraps every occurrence of a term in wikilinks, working backwards through the document to preserve character positions
+- **Link:** wraps the first occurrence in a wikilink (creates the file if needed)
+- **Link all:** wraps every occurrence of a term in wikilinks, working backwards through the document to preserve character positions
 
 See [Suggestions Sidebar](suggestions-sidebar.md) for details.
 

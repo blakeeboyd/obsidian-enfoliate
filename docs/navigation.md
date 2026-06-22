@@ -1,13 +1,13 @@
 # Navigation
 
-Enfoliate provides several ways to move between your notes and find where entities are mentioned.
+Enfoliate provides multiple ways to navigate between notes and find where taxa are mentioned.
 
 ## Jump-to-occurrence
 
 In the [suggestions sidebar](suggestions-sidebar.md), clicking on any taxa name jumps to its next occurrence in the editor. This works for:
 
-- **Linked mentions** — jumps through both wikilink instances (`[[...]]`) and plain text mentions of the same name
-- **Unlinked mentions** — jumps through plain text occurrences that aren't linked yet
+- **Linked mentions:** jumps through both wikilink instances (`[[...]]`) and plain text mentions of the same name
+- **Unlinked mentions:** jumps through plain text occurrences that aren't linked yet
 
 Clicking repeatedly cycles through all occurrences. When you reach the last one, the next click wraps back to the first.
 
@@ -42,7 +42,7 @@ The linked mentions section in the sidebar includes a **→** button next to eac
 | Command | What it does |
 |---------|-------------|
 | **Create taxa link** | Link selected text as a taxon (with prefix detection or picker) |
-| **Link taxa mention under the cursor** | Link the existing taxa term at the cursor — matches the whole phrase (e.g. "artificial intelligence"), no selection needed; does nothing if the cursor isn't on a known taxa term |
+| **Link taxa mention under the cursor** | Link the existing taxa term at the cursor. Matches the whole phrase (e.g. "artificial intelligence"), no selection needed; does nothing if the cursor isn't on a known taxa term |
 | **Move current note to taxa folder** | Move the active file to its taxa folder based on filename prefix |
 | **Link all unlinked taxa in the current note** | Wrap every unlinked mention of an existing taxa file in the note in one pass (overlaps resolved by keeping the longest match) |
 | **Open Enfoliate sidebar** | Show the Enfoliate panel in the right sidebar |

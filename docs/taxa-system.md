@@ -1,6 +1,6 @@
 # Taxa System
 
-Enfoliate organizes knowledge files using **taxa** — prefix characters that classify a file by type. Each taxon maps a prefix to a label and a folder, so every file of that type lives in the same place.
+Enfoliate organizes knowledge files using **taxa**: prefix characters that classify a file by type. Each taxon maps a prefix to a label and a folder, so every file of that type lives in the same place.
 
 ## How it works
 
@@ -25,11 +25,11 @@ Enfoliate ships with these prefixes and labels. Folders start unset, so you assi
 
 All mappings are fully configurable in **Settings → Enfoliate → Taxa Mappings**. You can:
 
-- **Change prefixes** — use any character or multi-character string
-- **Change labels** — rename "People" to "Characters" or anything else
-- **Change folders** — point each taxon at whatever folder structure you use
-- **Add new taxa** — create your own categories beyond the defaults
-- **Remove taxa** — delete any mapping you don't need
+- **Change prefixes:** use any character or multi-character string
+- **Change labels:** rename "People" to "Characters" or anything else
+- **Change folders:** point each taxon at whatever folder structure you use
+- **Add new taxa:** create your own categories beyond the defaults
+- **Remove taxa:** delete any mapping you don't need
 
 When multiple prefixes could match (e.g. `@` and `@@`), Enfoliate checks the longest prefix first.
 
@@ -37,8 +37,8 @@ When multiple prefixes could match (e.g. `@` and `@@`), Enfoliate checks the lon
 
 When auto-move is enabled (the default), Enfoliate watches for two events:
 
-1. **File creation** — a new file with a taxa prefix is automatically moved to the matching folder
-2. **File rename** — renaming a file to include a taxa prefix moves it to the matching folder
+1. **File creation:** a new file with a taxa prefix is automatically moved to the matching folder
+2. **File rename:** renaming a file to include a taxa prefix moves it to the matching folder
 
 If the target folder doesn't exist, Enfoliate creates it automatically (configurable). If a file with the same name already exists in the target folder, Enfoliate warns you instead of overwriting.
 

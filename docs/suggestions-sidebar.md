@@ -14,8 +14,8 @@ Each item shows its name (the file's title, including the taxa prefix) and a cou
 
 Shows all taxa currently linked in the active note, grouped by type. Each item displays:
 
-- **Name** — click to jump to the next occurrence in the document (cycles through all occurrences, including both wikilinks and plain text mentions)
-- **Count** — total number of occurrences (linked + unlinked mentions of that name). With **Match aliases of linked files** on (see [Settings](settings.md)), the count also folds in unlinked occurrences of the file's other aliases and is shown as `(total, N unlinked)`. For example, a note that links `[[+Zone of Proximal Development]]` twice but writes "ZPD" 33 more times reads `(35, 33 unlinked)`, and clicking the name cycles through all 35.
+- **Name:** click to jump to the next occurrence in the document (cycles through all occurrences, including both wikilinks and plain text mentions)
+- **Count:** total number of occurrences (linked + unlinked mentions of that name). With **Match aliases of linked files** on (see [Settings](settings.md)), the count also folds in unlinked occurrences of the file's other aliases and is shown as `(total, N unlinked)`. For example, a note that links `[[+Zone of Proximal Development]]` twice but writes "ZPD" 33 more times reads `(35, 33 unlinked)`, and clicking the name cycles through all 35.
 
 When an already-linked file still has unlinked plain-text mentions, **Link all occurrences** wraps those remaining occurrences in wikilinks. This section only appears when the note contains at least one taxa link.
 
@@ -29,22 +29,22 @@ Matches are grouped by taxa type. Each match shows its name and a count of unlin
 
 Available on every row (right-click for all of them; enable any as inline buttons under **Sidebar Buttons** in settings):
 
-- **Link** — wraps the first occurrence in a wikilink, preserving its surface form as the link alias (Unlinked Mentions)
-- **Link all** — wraps every unlinked occurrence in wikilinks. On Unlinked Mentions that's all of them; on an already-linked file (Linked Mentions) it links the remaining plain-text mentions
-- **Open note** — opens the taxa file
-- **Jump to occurrence** — same as clicking the name (right-click menu only)
-- **Unlink** — removes the wikilinks to this file (Linked Mentions)
-- **Always ignore** — permanently blocklists this term (Unlinked Mentions; see [Settings](settings.md))
-- **Dismiss** — hides this suggestion for the current session (Unlinked Mentions)
+- **Link:** wraps the first occurrence in a wikilink, preserving its surface form as the link alias (Unlinked Mentions)
+- **Link all:** wraps every unlinked occurrence in wikilinks. On Unlinked Mentions that's all of them; on an already-linked file (Linked Mentions) it links the remaining plain-text mentions
+- **Open note:** opens the taxa file
+- **Jump to occurrence:** same as clicking the name (right-click menu only)
+- **Unlink:** removes the wikilinks to this file (Linked Mentions)
+- **Always ignore:** permanently blocklists this term (Unlinked Mentions; see [Settings](settings.md))
+- **Dismiss:** hides this suggestion for the current session (Unlinked Mentions)
 
 Matching rules:
 - Case-insensitive
 - Word boundaries respected (won't match "art" inside "party")
 - Hyphens are treated as part of a word, so "Sub" won't match the fragment in "Sub-branch"; a hyphenated term like "Hans-Georg Moeller" still matches as a whole
 - Markdown formatting characters (`*`, `_`, `~`, `` ` ``) treated as word boundaries, so bold/italic text is matched correctly
-- Existing wikilinks are excluded — text inside `[[ ]]` won't generate a match
+- Existing wikilinks are excluded; text inside `[[ ]]` won't generate a match
 - Minimum term length of 2 characters
-- A file that is already linked anywhere in the note never appears under Unlinked Mentions — it is shown under Linked Mentions instead, so the same file is never listed twice. Its still-unlinked alias occurrences are surfaced there (see Linked Mentions above) when **Match aliases of linked files** is on.
+- A file that is already linked anywhere in the note is shown under Linked Mentions, not Unlinked Mentions, so the same file is never listed twice. Its still-unlinked alias occurrences are surfaced there (see Linked Mentions above) when **Match aliases of linked files** is on.
 
 ## Sticky headers
 
@@ -61,7 +61,7 @@ With **Auto-scan** on (the default), the sidebar rescans automatically when you:
 - Switch to a different file
 - Edit the current file (debounced to 1 second)
 
-Turn **Auto-scan** off (in settings) when you don't want the sidebar working on every keystroke and file switch — useful in large vaults. A **Scan** button then appears in the sidebar header; the panel only analyzes the active note when you click it.
+Turn **Auto-scan** off (in settings) to stop the sidebar from rescanning on every keystroke and file switch. A **Scan** button then appears in the sidebar header; the panel only analyzes the active note when you click it.
 
 ## Jump-to-occurrence
 
@@ -74,10 +74,10 @@ By default, clicking a taxa name (in any section) jumps to the next occurrence i
 
 For wikilinks, the highlight covers the full `[[...]]` span, not just the display text.
 
-In **Reading mode** there is no editor to drive, so the jump scrolls the rendered preview to the occurrence and briefly wraps it in a highlight span — the same color and fade animation as the editor highlight. The exact occurrence is found by index — its position among the matching occurrences in source maps to the same position among the rendered ones — so cycling moves through occurrences one at a time as in edit mode, even when several share a line, and a linked occurrence is highlighted on its rendered link rather than skipped. The match is centered in the view.
+In **Reading mode** there is no editor to drive, so the jump scrolls the rendered preview to the occurrence and briefly wraps it in a highlight span, using the same color and fade animation as the editor highlight. The exact occurrence is found by index: its position among the matching occurrences in source maps to the same position among the rendered ones. This means cycling moves through occurrences one at a time as in edit mode, even when several share a line, and a linked occurrence is highlighted on its rendered link rather than skipped. The match is centered in the view.
 
 ### Highlight settings
 
-- **Toggle highlight on jump** — enable/disable the highlight flash (Settings → Enfoliate)
-- **Highlight color** — choose a custom color or use the default yellow (`rgba(255, 215, 0, 0.45)`)
-- **Highlight duration** — how long the highlight stays before fading, 0.5 to 10 seconds (default 2.5)
+- **Toggle highlight on jump:** enable/disable the highlight flash (Settings → Enfoliate)
+- **Highlight color:** choose a custom color or use the default yellow (`rgba(255, 215, 0, 0.45)`)
+- **Highlight duration:** how long the highlight stays before fading, 0.5 to 10 seconds (default 2.5)
