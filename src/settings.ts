@@ -384,6 +384,21 @@ export class EnfoliateSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName("Limit to visible area")
+      .setDesc(
+        "Only show mentions whose occurrences are in the editor's current view, updating as you scroll. Also toggleable from the eye button in the sidebar header. Edit mode only."
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.scopeToView)
+          .onChange(async (value) => {
+            this.plugin.settings.scopeToView = value;
+            await this.plugin.saveSettings();
+            this.plugin.refreshSuggestionsView();
+          })
+      );
+
+    new Setting(containerEl)
       .setName("Sort entries")
       .setDesc("Order of entries within each taxa category in the sidebar.")
       .addDropdown((dd) =>

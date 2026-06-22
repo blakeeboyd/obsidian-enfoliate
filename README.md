@@ -110,6 +110,7 @@ Copy `main.js`, `manifest.json`, and `styles.css` to your vault's `.obsidian/plu
 | Enable Sidebar | On | Make the sidebar available (requires reload); off uses commands + auto-move only |
 | Open sidebar on startup | On | Auto-open the Enfoliate sidebar on plugin load |
 | Auto-scan | On | Scan the active note automatically; turn off to scan only via the Scan button |
+| Limit to visible area | Off | Only show mentions in the editor's current view; also toggleable from the sidebar header (synced) |
 | Sort entries | Mentions, high to low | Order entries within each category by mention count or name |
 | Click action | Jump to term in the document | What a click on a sidebar item does: jump, open in current tab / new tab / Split View / new window, copy a wikilink, or open the options menu |
 | Shift+click action | Open in Split View | Same choices, for Shift+click |
