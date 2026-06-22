@@ -177,28 +177,22 @@ class HowToModal extends Modal {
       text: "You can set a template file per taxon. New files of that type start from the template, with these tokens filled in: {{title}} (the note's name, also {{name}} or {{alias}}), {{prefix}} (the taxon's prefix character, such as @), and {{label}} (the taxon's name, such as People). Obsidian's built-in Templates tokens work too, including {{date}}, {{time}}, and formatted variants like {{date:YYYY-MM-DD}}. If Templater is installed, its <% %> commands run as well.",
     });
 
+    const note = contentEl.createEl("p");
+    note.createEl("strong", { text: "No folder set? " });
+    note.appendText(
+      "If a taxon has no folder specified, its new files are created at the vault root and are not auto-moved. Set a folder to keep that type organized."
+    );
+
     const sidebar = contentEl.createEl("p");
     sidebar.createEl("strong", { text: "The sidebar. " });
     sidebar.appendText(
-      "Open the Enfoliate sidebar to see two sections for the active note: Linked Mentions (taxa already linked here) and Unlinked Mentions (existing taxa files whose names appear in the note but aren't linked yet). Right-click a row for its full set of actions (link, open, unlink, ignore, dismiss); choose which show as inline buttons under Sidebar Buttons in settings."
+      "Open the Enfoliate sidebar to see two sections for the active note: Linked Mentions (taxa already linked in the document) and Unlinked Mentions (existing taxa files whose names appear in the note but aren't linked yet). Right-click a row for its full set of actions (link, open, unlink, ignore, dismiss). You can choose which options show as inline buttons under Sidebar Buttons in settings."
     );
 
     const clicks = contentEl.createEl("p");
     clicks.createEl("strong", { text: "Clicking a term. " });
     clicks.appendText(
-      "By default, clicking a name jumps to its next occurrence in the note and Shift+click opens it in Split View. The click and each modifier-click (Shift, Cmd/Ctrl, Option/Alt) are configurable under Click Actions: each can jump, open the note in the current tab, a new tab, Split View, or a new window, or copy a wikilink."
-    );
-
-    const scan = contentEl.createEl("p");
-    scan.createEl("strong", { text: "Scanning. " });
-    scan.appendText(
-      "The sidebar scans the active note automatically. In a large vault you can turn off Auto-scan and scan on demand with the Scan button in the sidebar header."
-    );
-
-    const note = contentEl.createEl("p");
-    note.createEl("strong", { text: "No folder set? " });
-    note.appendText(
-      "If a taxon has no folder specified, its new files are created at the vault root and are not auto-moved. Set a folder to keep that type organized."
+      "By default, clicking a term in the sidebar jumps to the next occurrence in the document. To open a term found in the sidebar, different options are available using modifier keys. These are all configurable under the 'Click Actions' section in the settings menu."
     );
 
     const inspired = contentEl.createEl("p", {
