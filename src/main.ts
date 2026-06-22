@@ -145,6 +145,44 @@ export default class EnfoliatePlugin extends Plugin {
     });
 
     this.addCommand({
+      id: "enfoliate-link-under-cursor",
+      name: "Link taxa mention under the cursor",
+      editorCallback: (editor) => {
+        const file = this.app.workspace.getActiveFile();
+        if (!file) return;
+        const content = editor.getValue();
+        const cursor = editor.posToOffset(editor.getCursor());
+
+        // Find the taxa mention whose span contains the cursor, preferring the
+        // longest (so a full phrase like "artificial intelligence" wins over a
+        // shorter alias). The matcher already yields whole-term spans.
+        const matches = findUnlinkedMatches(this.app, content, file, this.settings.taxaMappings, true);
+        let best: { offset: number; len: number; surface: string; target: string } | null = null;
+        for (const match of matches) {
+          for (const p of match.positions) {
+            if (cursor >= p.offset && cursor <= p.offset + p.len) {
+              if (!best || p.len > best.len) {
+                best = { offset: p.offset, len: p.len, surface: p.surface, target: match.fileName };
+              }
+            }
+          }
+        }
+
+        if (!best) {
+          new Notice("No taxa mention under the cursor.");
+          return;
+        }
+        // replaceRange is a single editor edit, so Ctrl/Cmd+Z undoes it.
+        editor.replaceRange(
+          `[[${best.target}|${best.surface}]]`,
+          editor.offsetToPos(best.offset),
+          editor.offsetToPos(best.offset + best.len)
+        );
+        this.refreshSuggestionsView();
+      },
+    });
+
+    this.addCommand({
       id: "enfoliate-toggle-auto-scan",
       name: "Toggle auto-scan",
       callback: async () => {
@@ -159,7 +197,9 @@ export default class EnfoliatePlugin extends Plugin {
   /**
    * Wrap every unlinked mention of an existing taxa file in the active note with
    * a wikilink, in one pass. Overlapping matches across files are resolved by
-   * keeping the longest, so nothing gets double-wrapped or corrupted.
+   * keeping the longest, so nothing gets double-wrapped or corrupted. When the
+   * note is open in source mode the change is applied through the editor as a
+   * single transaction so it can be undone with Ctrl/Cmd+Z.
    */
   private async linkAllUnlinked() {
     const file = this.app.workspace.getActiveFile();
@@ -167,7 +207,12 @@ export default class EnfoliatePlugin extends Plugin {
       new Notice("No active note.");
       return;
     }
-    const content = await this.app.vault.read(file);
+
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    const editor = view && view.file === file && view.getMode() === "source" ? view.editor : null;
+    // Match against the editor's live text when available so offsets line up.
+    const content = editor ? editor.getValue() : await this.app.vault.read(file);
+
     // includeLinkedFiles: also catch the remaining plain-text mentions of files
     // that are already linked somewhere in the note.
     const matches = findUnlinkedMatches(this.app, content, file, this.settings.taxaMappings, true);
@@ -197,17 +242,30 @@ export default class EnfoliatePlugin extends Plugin {
       if (!overlaps) kept.push(o);
     }
 
-    // Replace back-to-front so earlier offsets stay valid.
-    kept.sort((a, b) => b.offset - a.offset);
-    let newContent = content;
-    for (const o of kept) {
-      newContent =
-        newContent.substring(0, o.offset) +
-        `[[${o.target}|${o.surface}]]` +
-        newContent.substring(o.offset + o.len);
+    if (editor) {
+      // One transaction = one undo step. Changes are non-overlapping (resolved
+      // above) and given in document order.
+      const changes = [...kept]
+        .sort((a, b) => a.offset - b.offset)
+        .map((o) => ({
+          from: editor.offsetToPos(o.offset),
+          to: editor.offsetToPos(o.offset + o.len),
+          text: `[[${o.target}|${o.surface}]]`,
+        }));
+      editor.transaction({ changes });
+    } else {
+      // No live editor (reading mode / not open): rewrite the file back-to-front.
+      kept.sort((a, b) => b.offset - a.offset);
+      let newContent = content;
+      for (const o of kept) {
+        newContent =
+          newContent.substring(0, o.offset) +
+          `[[${o.target}|${o.surface}]]` +
+          newContent.substring(o.offset + o.len);
+      }
+      await this.app.vault.modify(file, newContent);
     }
 
-    await this.app.vault.modify(file, newContent);
     new Notice(`Linked ${kept.length} taxa mention${kept.length > 1 ? "s" : ""}.`);
     this.refreshSuggestionsView();
   }

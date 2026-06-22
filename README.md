@@ -64,6 +64,7 @@ Files created or renamed with a taxa prefix are automatically moved to the match
 | Command | Description |
 |---------|-------------|
 | Create taxa link | Link selected text as a taxon |
+| Link taxa mention under the cursor | Link the existing taxa term at the cursor (whole phrase, no selection needed) |
 | Move current note to taxa folder | Move the active file based on its prefix |
 | Link all unlinked taxa in the current note | Wrap every unlinked taxa mention in the note in one pass |
 | Open Enfoliate sidebar | Show the Enfoliate panel |

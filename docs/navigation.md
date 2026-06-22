@@ -42,6 +42,7 @@ The linked mentions section in the sidebar includes a **→** button next to eac
 | Command | What it does |
 |---------|-------------|
 | **Create taxa link** | Link selected text as a taxon (with prefix detection or picker) |
+| **Link taxa mention under the cursor** | Link the existing taxa term at the cursor — matches the whole phrase (e.g. "artificial intelligence"), no selection needed; does nothing if the cursor isn't on a known taxa term |
 | **Move current note to taxa folder** | Move the active file to its taxa folder based on filename prefix |
 | **Link all unlinked taxa in the current note** | Wrap every unlinked mention of an existing taxa file in the note in one pass (overlaps resolved by keeping the longest match) |
 | **Open Enfoliate sidebar** | Show the Enfoliate panel in the right sidebar |
