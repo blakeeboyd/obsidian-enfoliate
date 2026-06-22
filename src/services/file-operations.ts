@@ -43,14 +43,14 @@ export async function createTaxaLink(
       // If the template uses Templater syntax, let Templater process the file
       // before we touch the frontmatter, so its <% %> commands resolve.
       if (tmpl.hasTemplater) await runTemplater(app, newFile);
-      await addAliasToFile(app, newFile, cleanName);
+      if (settings.autoAddAlias) await addAliasToFile(app, newFile, cleanName);
       file = newFile;
     } catch (e) {
       new Notice(`Failed to create ${fileName}: ${e}`);
       return;
     }
   } else if (file instanceof TFile) {
-    await addAliasToFile(app, file, cleanName);
+    if (settings.autoAddAlias) await addAliasToFile(app, file, cleanName);
   }
 
   // Replace selection with wikilink

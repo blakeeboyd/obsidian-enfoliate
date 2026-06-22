@@ -295,6 +295,23 @@ export class EnfoliateSettingTab extends PluginSettingTab {
           })
       );
 
+    // --- Linking ---
+    containerEl.createEl("h2", { text: "Linking" });
+
+    new Setting(containerEl)
+      .setName("Auto-add alias")
+      .setDesc(
+        "When you create a taxa link, add the linked name to the target file's aliases so plain-text mentions of it resolve and surface as unlinked mentions."
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.autoAddAlias)
+          .onChange(async (value) => {
+            this.plugin.settings.autoAddAlias = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
     // --- Auto-Move ---
     containerEl.createEl("h2", { text: "Auto-Move" });
 

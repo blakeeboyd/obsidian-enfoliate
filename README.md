@@ -104,6 +104,7 @@ Copy `main.js`, `manifest.json`, and `styles.css` to your vault's `.obsidian/plu
 | Setting | Default | Description |
 |---------|---------|-------------|
 | Taxa Mappings | 8 prefixes, no folders | Add, edit, or remove prefix/label/folder mappings |
+| Auto-add alias | On | On link creation, add the linked name to the target file's aliases |
 | Auto-Move | On | Automatically move files to taxa folders |
 | Create folders if missing | On | Create target folders that don't exist |
 | Open sidebar on startup | Off | Auto-open the Enfoliate sidebar on plugin load |

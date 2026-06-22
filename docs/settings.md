@@ -20,6 +20,12 @@ A table of all configured taxa types. Each row has these fields:
 
 Changes take effect immediately after saving.
 
+## Linking
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Auto-add alias | On | When you create a taxa link, add the linked name to the target file's `aliases` so plain-text mentions resolve and surface as unlinked mentions. Turn off to leave the target file's frontmatter untouched |
+
 ## Auto-Move
 
 | Setting | Default | Description |

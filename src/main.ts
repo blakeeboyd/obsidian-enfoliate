@@ -18,6 +18,7 @@ const DEFAULT_SETTINGS: EnfoliateSettings = {
   taxaMappings: DEFAULT_TAXA_MAPPINGS,
   autoMoveEnabled: true,
   createFolderIfMissing: true,
+  autoAddAlias: true,
   sidebarOpen: false,
   autoScan: true,
   clickAction: "jump",
