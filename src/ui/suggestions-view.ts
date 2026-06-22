@@ -454,6 +454,27 @@ export class SuggestionsView extends ItemView {
     }, 1000);
   }
 
+  /**
+   * Refresh as soon as the metadata cache reflects a just-made change to `file`,
+   * so a linked/unlinked item moves between sections immediately instead of
+   * waiting for the file-save event and the modify debounce. Falls back to a
+   * timeout in case no change event arrives.
+   */
+  private refreshAfterMetadataUpdate(file: TFile) {
+    let done = false;
+    const run = () => {
+      if (done) return;
+      done = true;
+      this.app.metadataCache.offref(ref);
+      window.clearTimeout(timer);
+      this.refresh();
+    };
+    const ref = this.app.metadataCache.on("changed", (changed) => {
+      if (changed === file) run();
+    });
+    const timer = window.setTimeout(run, 2000);
+  }
+
   private registerSelectionListener() {
     this.selectionEditorCallback = null;
     const view = this.app.workspace.getActiveViewOfType(MarkdownView);
@@ -880,7 +901,7 @@ export class SuggestionsView extends ItemView {
     await this.applyLinks(noteFile, linkTarget, positions);
     const n = positions.length;
     new Notice(`Linked ${n} ${n > 1 ? "occurrences" : "occurrence"}`);
-    this.refresh();
+    this.refreshAfterMetadataUpdate(noteFile);
   }
 
   private renderUnlinkedMatch(
@@ -983,7 +1004,7 @@ export class SuggestionsView extends ItemView {
     new Notice(
       `Linked ${match.alias} (${count} ${count > 1 ? "occurrences" : "occurrence"})`
     );
-    this.refresh();
+    this.refreshAfterMetadataUpdate(noteFile);
   }
 
   private async unlinkTaxaFromNote(link: string, displayName: string, noteFile: TFile) {
@@ -1007,7 +1028,7 @@ export class SuggestionsView extends ItemView {
     const count = (content.match(pattern) || []).length;
     await this.app.vault.modify(noteFile, newContent);
     new Notice(`Unlinked ${displayName} (${count} ${count > 1 ? "occurrences" : "occurrence"})`);
-    this.refresh();
+    this.refreshAfterMetadataUpdate(noteFile);
   }
 
   private async renderLinkedTaxa(container: HTMLElement, file: TFile) {
