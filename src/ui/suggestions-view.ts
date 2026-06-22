@@ -764,14 +764,15 @@ export class SuggestionsView extends ItemView {
     fullContent: string
   ) {
     const row = container.createDiv("enfoliate-suggestion-row");
-    row.dataset.search = `${match.alias} ${match.matchText}`.toLowerCase();
+    row.dataset.search = `${match.fileName} ${match.alias} ${match.matchText}`.toLowerCase();
 
     // Top line: name + action buttons
     const top = row.createDiv("enfoliate-suggestion-top");
 
     const info = top.createDiv("enfoliate-suggestion-info");
     const nameSpan = info.createSpan({
-      text: match.alias,
+      // Show the file's title including its taxa prefix, not the bare alias.
+      text: match.fileName,
       cls: "enfoliate-match-text enfoliate-clickable",
     });
     nameSpan.addEventListener("click", (evt) => {
@@ -905,7 +906,8 @@ export class SuggestionsView extends ItemView {
 
     // Group linked taxa by mapping, collecting positions
     interface LinkedItem {
-      displayName: string;
+      title: string; // file basename incl. prefix, shown in the sidebar
+      matchName: string; // link display text / alias, used to find plain-text occurrences
       link: string;
       positions: MatchPosition[];
       unlinkedCount: number;
@@ -920,7 +922,12 @@ export class SuggestionsView extends ItemView {
         if (link.link.startsWith(mapping.prefix)) {
           const items = grouped.get(mapping)!;
           if (!items.some((i) => i.link === link.link)) {
-            const displayName = link.displayText || link.link;
+            // What appears in prose (alias or display text), used to find
+            // plain-text occurrences; and the file's own title with prefix,
+            // shown in the sidebar.
+            const matchName = link.displayText || link.link;
+            const dest = this.app.metadataCache.getFirstLinkpathDest(link.link, file.path);
+            const title = dest ? dest.basename : link.link;
             // Keyed by offset so wikilink, display-name, and alias hits dedupe.
             const byOffset = new Map<number, MatchPosition>();
 
@@ -937,10 +944,10 @@ export class SuggestionsView extends ItemView {
             }
             const linkedCount = byOffset.size;
 
-            // Find plain text occurrences of the display name
-            if (displayName.length >= 2) {
+            // Find plain text occurrences of the match name
+            if (matchName.length >= 2) {
               const lowerContent = content.toLowerCase();
-              const lowerName = displayName.toLowerCase();
+              const lowerName = matchName.toLowerCase();
               searchFrom = 0;
               while (searchFrom < lowerContent.length) {
                 const idx = lowerContent.indexOf(lowerName, searchFrom);
@@ -953,29 +960,27 @@ export class SuggestionsView extends ItemView {
                 ) {
                   byOffset.set(idx, {
                     offset: idx,
-                    len: displayName.length,
-                    surface: content.substring(idx, idx + displayName.length),
+                    len: matchName.length,
+                    surface: content.substring(idx, idx + matchName.length),
                   });
                 }
-                searchFrom = idx + displayName.length;
+                searchFrom = idx + matchName.length;
               }
             }
 
             // Fold in unlinked occurrences of this file's other aliases
             // (e.g. "ZPD" for an already-linked Zone of Proximal Development).
-            if (this.plugin.settings.matchLinkedAliases) {
-              const dest = this.app.metadataCache.getFirstLinkpathDest(link.link, file.path);
-              if (dest) {
-                for (const mp of findFileMatchPositions(this.app, content, dest, mapping, bodyStart)) {
-                  if (!byOffset.has(mp.offset)) byOffset.set(mp.offset, mp);
-                }
+            if (this.plugin.settings.matchLinkedAliases && dest) {
+              for (const mp of findFileMatchPositions(this.app, content, dest, mapping, bodyStart)) {
+                if (!byOffset.has(mp.offset)) byOffset.set(mp.offset, mp);
               }
             }
 
             const positions = [...byOffset.values()].sort((a, b) => a.offset - b.offset);
 
             items.push({
-              displayName,
+              title,
+              matchName,
               link: link.link,
               positions,
               unlinkedCount: positions.length - linkedCount,
@@ -1004,17 +1009,17 @@ export class SuggestionsView extends ItemView {
 
       for (const item of items) {
         const row = groupContent.createDiv("enfoliate-linked-row");
-        row.dataset.search = `${item.displayName} ${item.link}`.toLowerCase();
+        row.dataset.search = `${item.title} ${item.matchName} ${item.link}`.toLowerCase();
         const info = row.createDiv("enfoliate-linked-info");
         const nameSpan = info.createSpan({
-          text: item.displayName,
+          text: item.title,
           cls: "enfoliate-linked-name enfoliate-clickable",
         });
         const jumpKey = `linked:${item.link}`;
         nameSpan.addEventListener("click", (evt) => {
           this.handleItemClick(evt, item.link, file.path, () => {
             if (item.positions.length > 0) {
-              this.jumpToOccurrence(jumpKey, item.positions, content, file, item.displayName.length);
+              this.jumpToOccurrence(jumpKey, item.positions, content, file, item.matchName.length);
             }
           });
         });
