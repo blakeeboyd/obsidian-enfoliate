@@ -48,14 +48,14 @@ The **Limit to visible area** toggle lives in the sidebar header (the eye button
 
 ## Click Actions
 
-Bind each click and modifier-click on a sidebar item to an action. Every binding offers the same choices: **jump** to the name's next occurrence in the document, open the note in the **current tab**, a **new tab**, **Split View**, or a **new window**, or **copy a wikilink** to the note. When several modifiers are held at once, precedence is Cmd/Ctrl, then Option/Alt, then Shift.
+Bind each click and modifier-click on a sidebar item to an action. Every binding offers the same choices: **jump** to the name's next occurrence in the document, open the note in the **current tab**, a **new tab**, **Split View**, or a **new window**, **copy a wikilink** to the note, or **open the options menu** (the same actions as right-clicking the row). When several modifiers are held at once, precedence is Cmd/Ctrl, then Option/Alt, then Shift.
 
 | Setting | Default | Modifier |
 |---------|---------|----------|
 | Click action | Jump to term in the document | (no modifier) |
 | Shift+click action | Open in Split View | Shift |
 | Cmd/Ctrl+click action | Open in the current tab | Cmd (macOS) / Ctrl (Windows/Linux) |
-| Option/Alt+click action | Open in a new tab | Option (macOS) / Alt (Windows/Linux) |
+| Option/Alt+click action | Open options menu | Option (macOS) / Alt (Windows/Linux) |
 
 ## Sidebar Buttons
 

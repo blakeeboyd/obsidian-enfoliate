@@ -566,6 +566,7 @@ export class EnfoliateSettingTab extends PluginSettingTab {
           .addOption("split", "Open in Split View")
           .addOption("window", "Open in a new window")
           .addOption("copy", "Copy wikilink")
+          .addOption("menu", "Open options menu")
           .setValue(get())
           .onChange(async (value) => {
             set(value as ClickAction);

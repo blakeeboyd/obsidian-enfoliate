@@ -111,15 +111,29 @@ export class SuggestionsView extends ItemView {
    * scope mentions to what's on screen and to pick the link target.
    */
   private visibleRange(noteFile: TFile | null): { from: number; to: number } | null {
-    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (!view || view.file !== noteFile || view.getMode() !== "source") return null;
-    const cm = (view.editor as unknown as { cm?: EditorView }).cm;
-    if (!cm || !cm.scrollDOM) return null;
-    const rect = cm.scrollDOM.getBoundingClientRect();
-    const from = cm.posAtCoords({ x: rect.left + 4, y: rect.top + 4 });
-    const to = cm.posAtCoords({ x: rect.left + 4, y: rect.bottom - 4 });
-    if (from == null || to == null) return null;
-    return { from: Math.min(from, to), to: Math.max(from, to) };
+    const cm = this.editorViewFor(noteFile);
+    if (!cm) return null;
+    const ranges = cm.visibleRanges;
+    if (!ranges.length) return null;
+    return { from: ranges[0].from, to: ranges[ranges.length - 1].to };
+  }
+
+  /** The CodeMirror view of an open source-mode editor for the file, or null. */
+  private editorViewFor(noteFile: TFile | null): EditorView | null {
+    if (!noteFile) return null;
+    let found: EditorView | null = null;
+    this.app.workspace.iterateAllLeaves((leaf) => {
+      const view = leaf.view;
+      if (
+        !found &&
+        view instanceof MarkdownView &&
+        view.file === noteFile &&
+        view.getMode() === "source"
+      ) {
+        found = (view.editor as unknown as { cm?: EditorView }).cm ?? null;
+      }
+    });
+    return found;
   }
 
   /**
@@ -135,9 +149,7 @@ export class SuggestionsView extends ItemView {
     this.scrollHandler = null;
     if (!this.plugin.settings.scopeToView) return;
 
-    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (!view || view.file !== this.currentFile) return;
-    const cm = (view.editor as unknown as { cm?: EditorView }).cm;
+    const cm = this.editorViewFor(this.currentFile);
     const el = cm?.scrollDOM;
     if (!el) return;
 
@@ -223,18 +235,30 @@ export class SuggestionsView extends ItemView {
     return { line: lines.length - 1, ch: lines[lines.length - 1].length };
   }
 
+  /** Show a row's full action set as a context menu at the event position. */
+  private showActionMenu(evt: MouseEvent, actions: RowAction[]) {
+    const menu = new Menu();
+    for (const action of actions) {
+      menu.addItem((mi) =>
+        mi.setTitle(action.label).setIcon(action.icon).onClick(() => void action.run())
+      );
+    }
+    menu.showAtMouseEvent(evt);
+  }
+
   /**
    * Run the configured action for a click on a sidebar item, choosing the
    * binding by held modifier (precedence: Cmd/Ctrl, then Alt/Option, then Shift,
-   * else plain click). Either jumps to the next occurrence (via `jump`) or opens
-   * the taxa note in the current tab, a new tab, a split, or a new window.
-   * openLinkText handles link resolution and main-area targeting.
+   * else plain click). Jumps to the next occurrence, opens the note (current
+   * tab / new tab / split / new window), copies a wikilink, or opens the row's
+   * options menu. openLinkText handles link resolution and main-area targeting.
    */
   private handleItemClick(
     evt: MouseEvent,
     linkText: string,
     sourcePath: string,
-    jump: () => void
+    jump: () => void,
+    showMenu: () => void
   ) {
     const s = this.plugin.settings;
     const action =
@@ -247,6 +271,10 @@ export class SuggestionsView extends ItemView {
             : s.clickAction;
     if (action === "jump") {
       jump();
+      return;
+    }
+    if (action === "menu") {
+      showMenu();
       return;
     }
     if (action === "copy") {
@@ -931,13 +959,7 @@ export class SuggestionsView extends ItemView {
 
     row.addEventListener("contextmenu", (e) => {
       e.preventDefault();
-      const menu = new Menu();
-      for (const action of actions) {
-        menu.addItem((mi) =>
-          mi.setTitle(action.label).setIcon(action.icon).onClick(() => void action.run())
-        );
-      }
-      menu.showAtMouseEvent(e);
+      this.showActionMenu(e, actions);
     });
   }
 
@@ -1028,11 +1050,6 @@ export class SuggestionsView extends ItemView {
       text: match.fileName,
       cls: "enfoliate-match-text enfoliate-clickable",
     });
-    nameSpan.addEventListener("click", (evt) => {
-      this.handleItemClick(evt, match.fileName, noteFile.path, () => {
-        this.jumpToOccurrence(match.filePath, match.positions, fullContent, noteFile, match.matchText.length);
-      });
-    });
 
     const actionsEl = top.createDiv("enfoliate-suggestion-actions");
 
@@ -1087,6 +1104,16 @@ export class SuggestionsView extends ItemView {
         },
       }
     );
+    nameSpan.addEventListener("click", (evt) => {
+      this.handleItemClick(
+        evt,
+        match.fileName,
+        noteFile.path,
+        () =>
+          this.jumpToOccurrence(match.filePath, match.positions, fullContent, noteFile, match.matchText.length),
+        () => this.showActionMenu(evt, rowActions)
+      );
+    });
     this.renderRowActions(row, actionsEl, rowActions);
 
     // Bottom line: metadata
@@ -1265,13 +1292,6 @@ export class SuggestionsView extends ItemView {
           cls: "enfoliate-linked-name enfoliate-clickable",
         });
         const jumpKey = `linked:${item.link}`;
-        nameSpan.addEventListener("click", (evt) => {
-          this.handleItemClick(evt, item.link, file.path, () => {
-            if (item.positions.length > 0) {
-              this.jumpToOccurrence(jumpKey, item.positions, content, file, item.matchName.length);
-            }
-          });
-        });
         if (item.positions.length > 0) {
           info.createSpan({
             text:
@@ -1321,6 +1341,19 @@ export class SuggestionsView extends ItemView {
             run: () => this.app.workspace.openLinkText(item.link, file.path, false),
           }
         );
+        nameSpan.addEventListener("click", (evt) => {
+          this.handleItemClick(
+            evt,
+            item.link,
+            file.path,
+            () => {
+              if (item.positions.length > 0) {
+                this.jumpToOccurrence(jumpKey, item.positions, content, file, item.matchName.length);
+              }
+            },
+            () => this.showActionMenu(evt, rowActions)
+          );
+        });
         this.renderRowActions(row, linkedActions, rowActions);
       }
     }

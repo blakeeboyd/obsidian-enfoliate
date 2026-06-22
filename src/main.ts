@@ -25,7 +25,7 @@ const DEFAULT_SETTINGS: EnfoliateSettings = {
   sortOrder: "mentions-desc",
   clickAction: "jump",
   modClickAction: "replace",
-  altClickAction: "tab",
+  altClickAction: "menu",
   shiftClickAction: "split",
   inlineActions: ["link", "linkAll", "unlink"],
   matchLinkedAliases: false,

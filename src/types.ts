@@ -19,7 +19,7 @@ export type OpenMode = "replace" | "tab" | "split" | "window";
  * occurrence in the document, copy a wikilink to the note, or open the note in
  * one of the open modes.
  */
-export type ClickAction = "jump" | "copy" | OpenMode;
+export type ClickAction = "jump" | "copy" | "menu" | OpenMode;
 
 /** Order of entries within each taxa category in the sidebar. */
 export type SortOrder = "mentions-desc" | "mentions-asc" | "name-asc" | "name-desc";
