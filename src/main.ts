@@ -31,7 +31,6 @@ const DEFAULT_SETTINGS: EnfoliateSettings = {
   highlightOnJump: true,
   highlightDurationSeconds: 2.5,
   selectOnJump: false,
-  scopeToSelection: false,
   showSearchBar: true,
   collapsedCategories: [],
   highlightColor: "",

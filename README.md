@@ -36,7 +36,7 @@ A sidebar panel with two sections for the active note:
 - **Linked mentions** — all taxa currently linked in the note, grouped by type. Click a name to jump through occurrences (wikilinks and plain text). If a linked file still has plain-text mentions, link the remaining ones in one action.
 - **Unlinked mentions** — existing taxa files whose names or aliases appear in your note but aren't linked yet. Link individual mentions or all at once.
 
-Right-click any row for its full set of actions (link, open, unlink, ignore, dismiss, …); choose which of those also show as inline buttons under **Sidebar Buttons** in settings. The sidebar refreshes on file switch, content edits, and selection changes.
+Right-click any row for its full set of actions (link, open, unlink, ignore, dismiss, …); choose which of those also show as inline buttons under **Sidebar Buttons** in settings. The sidebar refreshes on file switch and content edits.
 
 > **Quote numeric aliases.** YAML reads an unquoted alias like `5.1` or `2024` as a number, not text. Enfoliate ignores non-string aliases so they can't break matching — which also means they won't be searched. Quote them in frontmatter to keep them working as aliases:
 >

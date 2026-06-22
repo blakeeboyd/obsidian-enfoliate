@@ -59,13 +59,8 @@ With **Auto-scan** on (the default), the sidebar rescans automatically when you:
 
 - Switch to a different file
 - Edit the current file (debounced to 1 second)
-- Change your text selection
 
 Turn **Auto-scan** off (in settings) when you don't want the sidebar working on every keystroke and file switch — useful in large vaults. A **Scan** button then appears in the sidebar header; the panel only analyzes the active note when you click it.
-
-## Selection scoping
-
-Select text in the editor to scope the scan to just that selection. Deselect to revert to the full note. Turn this off with **Scope to selection** in settings to always scan the whole note regardless of selection.
 
 ## Jump-to-occurrence
 

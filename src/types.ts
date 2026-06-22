@@ -38,7 +38,6 @@ export interface EnfoliateSettings {
   highlightOnJump: boolean;
   highlightDurationSeconds: number;
   selectOnJump: boolean;
-  scopeToSelection: boolean;
   showSearchBar: boolean;
   collapsedCategories: string[];
   highlightColor: string;

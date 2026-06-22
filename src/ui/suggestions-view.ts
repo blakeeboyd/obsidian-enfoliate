@@ -49,8 +49,6 @@ export class SuggestionsView extends ItemView {
   plugin: EnfoliatePlugin;
   private dismissed: Set<string> = new Set();
   private currentFile: TFile | null = null;
-  private selectionEditorCallback: (() => void) | null = null;
-  private lastSelection = "";
   private searchQuery = "";
   private stickyObserver: ResizeObserver | null = null;
   private jumpIndex: Map<string, number> = new Map();
@@ -76,7 +74,6 @@ export class SuggestionsView extends ItemView {
     this.registerEvent(
       this.app.workspace.on("active-leaf-change", () => {
         this.onActiveFileChange();
-        this.registerSelectionListener();
       })
     );
     this.registerEvent(
@@ -86,8 +83,6 @@ export class SuggestionsView extends ItemView {
         }
       })
     );
-
-    this.registerSelectionListener();
 
     // Recompute sticky-header offsets whenever the panel resizes — including
     // when it first gains dimensions, which fixes the offsets being measured
@@ -99,7 +94,6 @@ export class SuggestionsView extends ItemView {
   }
 
   async onClose() {
-    this.selectionEditorCallback = null;
     this.stickyObserver?.disconnect();
     this.stickyObserver = null;
   }
@@ -475,33 +469,6 @@ export class SuggestionsView extends ItemView {
     const timer = window.setTimeout(run, 2000);
   }
 
-  private registerSelectionListener() {
-    this.selectionEditorCallback = null;
-    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (!view || !view.editor) return;
-
-    const editor = view.editor;
-    let debounce: ReturnType<typeof setTimeout> | null = null;
-    this.selectionEditorCallback = () => {
-      if (!this.plugin.settings.autoScan) return;
-      if (!this.plugin.settings.scopeToSelection) return;
-      if (debounce) clearTimeout(debounce);
-      debounce = setTimeout(() => {
-        const sel = editor.getSelection() || "";
-        if (sel !== this.lastSelection) {
-          this.lastSelection = sel;
-          this.refresh();
-        }
-      }, 200);
-    };
-
-    const cm = (editor as any).cm;
-    if (cm && cm.contentDOM) {
-      cm.contentDOM.addEventListener("mouseup", this.selectionEditorCallback);
-      cm.contentDOM.addEventListener("keyup", this.selectionEditorCallback);
-    }
-  }
-
   private onActiveFileChange() {
     const file = this.app.workspace.getActiveFile();
     if (!file || file === this.currentFile) return;
@@ -509,7 +476,6 @@ export class SuggestionsView extends ItemView {
     this.currentFile = file;
     this.dismissed.clear();
     this.jumpIndex.clear();
-    this.lastSelection = "";
 
     if (this.plugin.settings.autoScan) {
       this.refresh();
@@ -519,19 +485,12 @@ export class SuggestionsView extends ItemView {
   }
 
   /**
-   * Build the pinned header: the "Enfoliate" title, an optional selection-scope
-   * indicator, and — when auto-scan is off — a Scan button that runs a manual
-   * scan of the active note.
+   * Build the pinned header: the "Enfoliate" title and — when auto-scan is off
+   * — a Scan button that runs a manual scan of the active note.
    */
-  private buildStickyHeader(stickyTop: HTMLElement, isSelection: boolean) {
+  private buildStickyHeader(stickyTop: HTMLElement) {
     const header = stickyTop.createDiv("enfoliate-suggestions-header");
-    const titleEl = header.createEl("h4", { text: "Enfoliate" });
-    if (isSelection) {
-      titleEl.createSpan({
-        text: " (selection)",
-        cls: "enfoliate-scope-indicator",
-      });
-    }
+    header.createEl("h4", { text: "Enfoliate" });
     if (!this.plugin.settings.autoScan) {
       const scanBtn = header.createEl("button", {
         cls: "enfoliate-scan-btn mod-cta",
@@ -557,7 +516,7 @@ export class SuggestionsView extends ItemView {
       return;
     }
     const stickyTop = container.createDiv("enfoliate-sticky-top");
-    this.buildStickyHeader(stickyTop, false);
+    this.buildStickyHeader(stickyTop);
     container.createEl("p", {
       text: "Auto-scan is off. Click Scan to analyze this note.",
       cls: "enfoliate-empty-state",
@@ -580,17 +539,11 @@ export class SuggestionsView extends ItemView {
     }
 
     const content = await this.app.vault.cachedRead(file);
-    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-    const selection = this.plugin.settings.scopeToSelection && view
-      ? view.editor.getSelection()
-      : "";
-    const isSelection = selection.trim().length > 0;
-    const textToAnalyze = isSelection ? selection.trim() : content;
 
     // Sticky top bar: title + search stay pinned as the list scrolls.
     const stickyTop = container.createDiv("enfoliate-sticky-top");
 
-    this.buildStickyHeader(stickyTop, isSelection);
+    this.buildStickyHeader(stickyTop);
 
     // Search / filter box (optional)
     if (this.plugin.settings.showSearchBar) {
@@ -636,7 +589,7 @@ export class SuggestionsView extends ItemView {
     // surface under Linked Mentions instead (when "Match aliases" is on).
     const unlinkedMatches = findUnlinkedMatches(
       this.app,
-      textToAnalyze,
+      content,
       file,
       this.plugin.settings.taxaMappings,
       false
