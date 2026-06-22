@@ -171,7 +171,7 @@ class HowToModal extends Modal {
     const inspired = contentEl.createEl("p", {
       cls: "setting-item-description",
     });
-    inspired.appendText("Inspired by ");
+    inspired.appendText("Built to work alongside ");
     inspired.createEl("a", {
       text: "Stowe Boyd's Portfolio knowledge management system",
       href: "https://www.workings.co/p/portfolio-a-knowledge-base-built",
