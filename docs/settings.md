@@ -40,12 +40,14 @@ Changes take effect immediately after saving.
 
 ## Click Actions
 
-What clicking a taxa name in the sidebar does. Each can jump to the name's next occurrence in the document, or open the note in the current tab, a new tab, or a new window.
+Bind each click and modifier-click on a sidebar item to an action. Every binding offers the same choices: **jump** to the name's next occurrence in the document, or open the note in the **current tab**, a **new tab**, a **split**, or a **new window**. When several modifiers are held at once, precedence is Cmd/Ctrl, then Option/Alt, then Shift.
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| Click action | Jump to it in the document | What a click on a sidebar item does: jump to its next occurrence, or open the note in the current tab, a new tab, or a new window |
-| Cmd/Ctrl+click action | Open in the current tab | What a Cmd (macOS) / Ctrl (Windows/Linux) + click on a sidebar item does: jump, or open in the current tab, a new tab, or a new window |
+| Setting | Default | Modifier |
+|---------|---------|----------|
+| Click action | Jump to term in the document | (no modifier) |
+| Cmd/Ctrl+click action | Open in the current tab | Cmd (macOS) / Ctrl (Windows/Linux) |
+| Option/Alt+click action | Open in a new tab | Option (macOS) / Alt (Windows/Linux) |
+| Shift+click action | Open in a new window | Shift |
 
 ## Sidebar Buttons
 

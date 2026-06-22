@@ -195,7 +195,7 @@ class HowToModal extends Modal {
     const clicks = contentEl.createEl("p");
     clicks.createEl("strong", { text: "Clicking a term. " });
     clicks.appendText(
-      "By default, clicking a name jumps to its next occurrence in the note and Cmd/Ctrl+click opens the note. Both the click and Cmd/Ctrl+click actions are configurable under Click Actions (jump, or open in the current tab, a new tab, or a new window)."
+      "By default, clicking a name jumps to its next occurrence in the note and Cmd/Ctrl+click opens it. The click and each modifier-click (Cmd/Ctrl, Option/Alt, Shift) are configurable under Click Actions: each can jump, or open the note in the current tab, a new tab, a split, or a new window."
     );
 
     const scan = contentEl.createEl("p");
@@ -407,40 +407,39 @@ export class EnfoliateSettingTab extends PluginSettingTab {
 
     // --- Click Actions ---
     containerEl.createEl("h2", { text: "Click Actions" });
+    containerEl.createEl("p", {
+      cls: "setting-item-description",
+      text: "Bind each click and modifier-click on a sidebar item to an action. When several modifiers are held, precedence is Cmd/Ctrl, then Option/Alt, then Shift.",
+    });
 
-    new Setting(containerEl)
-      .setName("Click action")
-      .setDesc("What a click on a sidebar item does.")
-      .addDropdown((dd) =>
-        dd
-          .addOption("jump", "Jump to term in the document")
-          .addOption("replace", "Open in the current tab")
-          .addOption("tab", "Open in a new tab")
-          .addOption("window", "Open in a new window")
-          .setValue(this.plugin.settings.clickAction)
-          .onChange(async (value) => {
-            this.plugin.settings.clickAction = value as ClickAction;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
-      .setName("Cmd/Ctrl+click action")
-      .setDesc(
-        "What a Cmd (macOS) / Ctrl (Windows/Linux) + click on a sidebar item does."
-      )
-      .addDropdown((dd) =>
-        dd
-          .addOption("jump", "Jump to term in the document")
-          .addOption("replace", "Open in the current tab")
-          .addOption("tab", "Open in a new tab")
-          .addOption("window", "Open in a new window")
-          .setValue(this.plugin.settings.modClickAction)
-          .onChange(async (value) => {
-            this.plugin.settings.modClickAction = value as ClickAction;
-            await this.plugin.saveSettings();
-          })
-      );
+    this.addClickActionSetting(
+      containerEl,
+      "Click action",
+      "What a plain click on a sidebar item does.",
+      () => this.plugin.settings.clickAction,
+      (v) => (this.plugin.settings.clickAction = v)
+    );
+    this.addClickActionSetting(
+      containerEl,
+      "Cmd/Ctrl+click action",
+      "What a Cmd (macOS) / Ctrl (Windows/Linux) + click does.",
+      () => this.plugin.settings.modClickAction,
+      (v) => (this.plugin.settings.modClickAction = v)
+    );
+    this.addClickActionSetting(
+      containerEl,
+      "Option/Alt+click action",
+      "What an Option (macOS) / Alt (Windows/Linux) + click does.",
+      () => this.plugin.settings.altClickAction,
+      (v) => (this.plugin.settings.altClickAction = v)
+    );
+    this.addClickActionSetting(
+      containerEl,
+      "Shift+click action",
+      "What a Shift + click does.",
+      () => this.plugin.settings.shiftClickAction,
+      (v) => (this.plugin.settings.shiftClickAction = v)
+    );
 
     // --- Sidebar Buttons ---
     containerEl.createEl("h2", { text: "Sidebar Buttons" });
@@ -525,6 +524,31 @@ export class EnfoliateSettingTab extends PluginSettingTab {
           .setButtonText(`Manage (${this.plugin.settings.blocklist.length})`)
           .onClick(() => {
             new BlocklistModal(this.app, this.plugin, () => this.display()).open();
+          })
+      );
+  }
+
+  private addClickActionSetting(
+    containerEl: HTMLElement,
+    name: string,
+    desc: string,
+    get: () => ClickAction,
+    set: (v: ClickAction) => void
+  ): void {
+    new Setting(containerEl)
+      .setName(name)
+      .setDesc(desc)
+      .addDropdown((dd) =>
+        dd
+          .addOption("jump", "Jump to term in the document")
+          .addOption("replace", "Open in the current tab")
+          .addOption("tab", "Open in a new tab")
+          .addOption("split", "Open in a split")
+          .addOption("window", "Open in a new window")
+          .setValue(get())
+          .onChange(async (value) => {
+            set(value as ClickAction);
+            await this.plugin.saveSettings();
           })
       );
   }

@@ -9,13 +9,14 @@ export interface TaxaMapping {
  * How to open a taxa note:
  * - "replace": in the current tab (standard link behavior)
  * - "tab": in a new tab, then focus it
+ * - "split": in a split pane beside the current one
  * - "window": in a new window
  */
-export type OpenMode = "replace" | "tab" | "window";
+export type OpenMode = "replace" | "tab" | "split" | "window";
 
 /**
  * What a click (or modifier-click) on a sidebar item does: jump to the next
- * occurrence in the document, or open the note in one of the three open modes.
+ * occurrence in the document, or open the note in one of the open modes.
  */
 export type ClickAction = "jump" | OpenMode;
 
@@ -27,6 +28,8 @@ export interface EnfoliateSettings {
   autoScan: boolean;
   clickAction: ClickAction;
   modClickAction: ClickAction;
+  altClickAction: ClickAction;
+  shiftClickAction: ClickAction;
   inlineActions: string[];
   matchLinkedAliases: boolean;
   blocklist: string[];

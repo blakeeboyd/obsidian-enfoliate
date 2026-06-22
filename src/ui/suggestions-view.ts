@@ -133,11 +133,11 @@ export class SuggestionsView extends ItemView {
   }
 
   /**
-   * Run the configured action for a click on a sidebar item. A plain click uses
-   * the "Click action" setting; a Cmd/Ctrl+click uses "Cmd/Ctrl+click action".
-   * Either jumps to the next occurrence (via `jump`) or opens the taxa note in
-   * the current tab, a new tab, or a new window. openLinkText handles link
-   * resolution and main-area targeting.
+   * Run the configured action for a click on a sidebar item, choosing the
+   * binding by held modifier (precedence: Cmd/Ctrl, then Alt/Option, then Shift,
+   * else plain click). Either jumps to the next occurrence (via `jump`) or opens
+   * the taxa note in the current tab, a new tab, a split, or a new window.
+   * openLinkText handles link resolution and main-area targeting.
    */
   private handleItemClick(
     evt: MouseEvent,
@@ -145,9 +145,15 @@ export class SuggestionsView extends ItemView {
     sourcePath: string,
     jump: () => void
   ) {
-    const action = evt.metaKey || evt.ctrlKey
-      ? this.plugin.settings.modClickAction
-      : this.plugin.settings.clickAction;
+    const s = this.plugin.settings;
+    const action =
+      evt.metaKey || evt.ctrlKey
+        ? s.modClickAction
+        : evt.altKey
+          ? s.altClickAction
+          : evt.shiftKey
+            ? s.shiftClickAction
+            : s.clickAction;
     if (action === "jump") {
       jump();
       return;
