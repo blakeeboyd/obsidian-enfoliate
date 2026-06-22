@@ -3,7 +3,7 @@ import { StateEffect, StateField } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 import type EnfoliatePlugin from "../main";
 import { UnlinkedMatch, TaxaMapping, MatchPosition } from "../types";
-import { findUnlinkedMatches, findFileMatchPositions, bodyStartOffset, isInsideWikilink } from "../services/unlinked-matcher";
+import { findUnlinkedMatches, findFileMatchPositions, findUnlinkedPositions, bodyStartOffset, isInsideWikilink } from "../services/unlinked-matcher";
 import { stripPrefix } from "../taxa";
 import { ENFOLIATE_ICON_ID } from "../icon";
 
@@ -1019,14 +1019,11 @@ export class SuggestionsView extends ItemView {
             }
             const linkedCount = byOffset.size;
 
-            // Find plain text occurrences of the match name
+            // Find plain text occurrences of the match name. Use the same
+            // word-boundary-aware finder as unlinked detection so a short alias
+            // like "AI" doesn't match inside words ("faithful", "claim").
             if (matchName.length >= 2) {
-              const lowerContent = content.toLowerCase();
-              const lowerName = matchName.toLowerCase();
-              searchFrom = 0;
-              while (searchFrom < lowerContent.length) {
-                const idx = lowerContent.indexOf(lowerName, searchFrom);
-                if (idx === -1) break;
+              for (const idx of findUnlinkedPositions(content, matchName)) {
                 // Skip frontmatter and positions overlapping a wikilink
                 if (
                   idx >= bodyStart &&
@@ -1039,7 +1036,6 @@ export class SuggestionsView extends ItemView {
                     surface: content.substring(idx, idx + matchName.length),
                   });
                 }
-                searchFrom = idx + matchName.length;
               }
             }
 

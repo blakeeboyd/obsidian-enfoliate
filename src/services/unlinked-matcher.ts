@@ -167,9 +167,11 @@ function getSearchTerms(
 
 /**
  * Find positions of a term in text that aren't inside wikilinks.
- * Case-insensitive matching with word boundary checks.
+ * Case-insensitive matching with word boundary checks, so a short term like
+ * "AI" never matches inside a word ("faithful", "claim"). Exported so the
+ * sidebar's linked-file plain-text scan uses the same boundary rules.
  */
-function findUnlinkedPositions(text: string, term: string): number[] {
+export function findUnlinkedPositions(text: string, term: string): number[] {
   const positions: number[] = [];
   const lowerText = text.toLowerCase();
   const lowerTerm = term.toLowerCase();
