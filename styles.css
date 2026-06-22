@@ -365,3 +365,17 @@
 .enfoliate-howto h2:first-child {
   margin-top: 0;
 }
+
+/* Slim the modal's scrollbar so it stays within the rounded corners. */
+.enfoliate-howto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.enfoliate-howto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.enfoliate-howto::-webkit-scrollbar-thumb {
+  background: var(--background-modifier-border);
+  border-radius: 3px;
+}
