@@ -213,7 +213,7 @@ class HowToModal extends Modal {
     const credit = contentEl.createEl("p", {
       cls: "setting-item-description",
     });
-    credit.appendText("Icon from ");
+    credit.appendText("Icon by Jamie Serra from ");
     credit.createEl("a", {
       text: "the Noun Project",
       href: "https://thenounproject.com/icon/booklet-1624270/",
