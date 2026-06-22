@@ -174,7 +174,7 @@ class HowToModal extends Modal {
     });
 
     contentEl.createEl("p", {
-      text: "You can set a template file per taxon. New files of that type start from the template, with {{title}}, {{prefix}}, and {{label}} substituted.",
+      text: "You can set a template file per taxon. New files of that type start from the template, with these tokens filled in: {{title}} (the note's name, also {{name}} or {{alias}}), {{prefix}} (the taxon's prefix character, such as @), and {{label}} (the taxon's name, such as People). Obsidian's built-in Templates tokens work too, including {{date}}, {{time}}, and formatted variants like {{date:YYYY-MM-DD}}. If Templater is installed, its <% %> commands run as well.",
     });
 
     const sidebar = contentEl.createEl("p");
