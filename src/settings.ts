@@ -1,6 +1,6 @@
 import { App, Modal, PluginSettingTab, Setting, AbstractInputSuggest, TFile, TFolder } from "obsidian";
 import type EnfoliatePlugin from "./main";
-import { TaxaMapping, ClickAction } from "./types";
+import { TaxaMapping, ClickAction, INLINE_ACTION_OPTIONS } from "./types";
 import { DEFAULT_TAXA_MAPPINGS } from "./taxa";
 
 class ConfirmModal extends Modal {
@@ -189,7 +189,7 @@ class HowToModal extends Modal {
     const sidebar = contentEl.createEl("p");
     sidebar.createEl("strong", { text: "The sidebar. " });
     sidebar.appendText(
-      "Open the Enfoliate sidebar to see two sections for the active note: Linked Mentions (taxa already linked here) and Unlinked Mentions (existing taxa files whose names appear in the note but aren't linked yet). Row buttons let you link, open, or ignore a mention."
+      "Open the Enfoliate sidebar to see two sections for the active note: Linked Mentions (taxa already linked here) and Unlinked Mentions (existing taxa files whose names appear in the note but aren't linked yet). Right-click a row for its full set of actions (link, open, unlink, ignore, dismiss); choose which show as inline buttons under Sidebar Buttons in settings."
     );
 
     const clicks = contentEl.createEl("p");
@@ -441,6 +441,30 @@ export class EnfoliateSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+
+    // --- Sidebar Buttons ---
+    containerEl.createEl("h2", { text: "Sidebar Buttons" });
+    containerEl.createEl("p", {
+      cls: "setting-item-description",
+      text: "Choose which action buttons appear inline on sidebar items. Every action is always available by right-clicking an item.",
+    });
+
+    for (const opt of INLINE_ACTION_OPTIONS) {
+      new Setting(containerEl)
+        .setName(opt.label)
+        .addToggle((toggle) =>
+          toggle
+            .setValue(this.plugin.settings.inlineActions.includes(opt.id))
+            .onChange(async (value) => {
+              const set = new Set(this.plugin.settings.inlineActions);
+              if (value) set.add(opt.id);
+              else set.delete(opt.id);
+              this.plugin.settings.inlineActions = [...set];
+              await this.plugin.saveSettings();
+              this.plugin.refreshSuggestionsView();
+            })
+        );
+    }
 
     // --- Highlighting ---
     containerEl.createEl("h2", { text: "Highlighting" });

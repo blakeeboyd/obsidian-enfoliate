@@ -21,6 +21,7 @@ const DEFAULT_SETTINGS: EnfoliateSettings = {
   autoScan: true,
   clickAction: "jump",
   modClickAction: "replace",
+  inlineActions: ["link", "linkAll", "linkUnlinked"],
   matchLinkedAliases: false,
   blocklist: [],
   highlightOnJump: true,

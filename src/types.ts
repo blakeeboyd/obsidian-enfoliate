@@ -27,6 +27,7 @@ export interface EnfoliateSettings {
   autoScan: boolean;
   clickAction: ClickAction;
   modClickAction: ClickAction;
+  inlineActions: string[];
   matchLinkedAliases: boolean;
   blocklist: string[];
   highlightOnJump: boolean;
@@ -58,3 +59,19 @@ export interface UnlinkedMatch {
   taxon: TaxaMapping;
   positions: MatchPosition[];
 }
+
+/**
+ * Row actions that can be shown as inline buttons in the sidebar. Every action
+ * is always available by right-clicking a row; this list controls which ones
+ * also appear as inline buttons (via the `inlineActions` setting). Jump is
+ * intentionally excluded — clicking a row name already jumps.
+ */
+export const INLINE_ACTION_OPTIONS: { id: string; label: string }[] = [
+  { id: "link", label: "Link (first occurrence)" },
+  { id: "linkAll", label: "Link all occurrences" },
+  { id: "linkUnlinked", label: "Link unlinked mentions" },
+  { id: "open", label: "Open note" },
+  { id: "unlink", label: "Unlink" },
+  { id: "ignore", label: "Always ignore" },
+  { id: "dismiss", label: "Dismiss" },
+];

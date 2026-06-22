@@ -8,28 +8,35 @@ Open it with the **Open Enfoliate sidebar** command, or by enabling "Open sideba
 
 The sidebar has two sections, top to bottom. Within each, every taxa category (`@ People`, `+ Concepts`, etc.) has a clickable header that collapses or expands its contents; the collapsed state persists across notes and restarts. Each section heading also has a collapse/expand-all button that toggles every category in that section at once.
 
+Each item shows its name (the file's title, including the taxa prefix) and a count. **Right-click any item for the full set of actions**; a configurable subset also appears as inline buttons (see [Row actions](#row-actions) and [Settings](settings.md)).
+
 ### Linked Mentions
 
 Shows all taxa currently linked in the active note, grouped by type. Each item displays:
 
 - **Name** — click to jump to the next occurrence in the document (cycles through all occurrences, including both wikilinks and plain text mentions)
 - **Count** — total number of occurrences (linked + unlinked mentions of that name). With **Match aliases of linked files** on (see [Settings](settings.md)), the count also folds in unlinked occurrences of the file's other aliases and is shown as `(total, N unlinked)`. For example, a note that links `[[+Zone of Proximal Development]]` twice but writes "ZPD" 33 more times reads `(35, 33 unlinked)`, and clicking the name cycles through all 35.
-- **→ button** — opens the taxa file directly
 
-This section only appears when the note contains at least one taxa link.
+When an already-linked file still has unlinked plain-text mentions, a **Link unlinked mentions** action wraps those remaining occurrences in wikilinks. This section only appears when the note contains at least one taxa link.
 
 ### Unlinked Mentions
 
 Scans the note for text matching existing taxa files that aren't linked yet. Enfoliate checks both filenames (without prefix) and frontmatter aliases.
 
-Matches are grouped by taxa type. Each match shows:
+Matches are grouped by taxa type. Each match shows its name and a count of unlinked occurrences.
 
-- **Name** — click to jump to the next occurrence, cycling through every match (including alias hits of different lengths)
-- **Count** — number of unlinked occurrences
-- **Link** — wraps the first occurrence in a wikilink, preserving its surface form as the link alias
-- **Link all** — wraps every occurrence in wikilinks
-- **✕ (Dismiss)** — hides this suggestion for the current session
-- **Ignore** — permanently blocklists this term (see [Settings](settings.md))
+### Row actions
+
+Available on every row (right-click for all of them; enable any as inline buttons under **Sidebar Buttons** in settings):
+
+- **Link** — wraps the first occurrence in a wikilink, preserving its surface form as the link alias (Unlinked Mentions)
+- **Link all** — wraps every occurrence in wikilinks (Unlinked Mentions)
+- **Link unlinked mentions** — wraps the remaining plain-text occurrences of an already-linked file (Linked Mentions)
+- **Open note** — opens the taxa file
+- **Jump to occurrence** — same as clicking the name (right-click menu only)
+- **Unlink** — removes the wikilinks to this file (Linked Mentions)
+- **Always ignore** — permanently blocklists this term (Unlinked Mentions; see [Settings](settings.md))
+- **Dismiss** — hides this suggestion for the current session (Unlinked Mentions)
 
 Matching rules:
 - Case-insensitive

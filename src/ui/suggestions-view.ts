@@ -1,4 +1,4 @@
-import { ItemView, Notice, TFile, WorkspaceLeaf, MarkdownView, setIcon } from "obsidian";
+import { ItemView, Menu, Notice, TFile, WorkspaceLeaf, MarkdownView, setIcon } from "obsidian";
 import { StateEffect, StateField } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 import type EnfoliatePlugin from "../main";
@@ -30,6 +30,20 @@ const highlightField = StateField.define<DecorationSet>({
 });
 
 export const SUGGESTIONS_VIEW_TYPE = "enfoliate-suggestions";
+
+/**
+ * An action available on a sidebar row. Rendered as an inline button when its
+ * `id` is enabled in settings, and always offered in the row's right-click menu.
+ * `inline: false` keeps an action menu-only (used for Jump, which the row name
+ * click already performs).
+ */
+interface RowAction {
+  id: string;
+  label: string;
+  icon: string;
+  run: () => void | Promise<void>;
+  inline?: boolean;
+}
 
 export class SuggestionsView extends ItemView {
   plugin: EnfoliatePlugin;
@@ -757,6 +771,59 @@ export class SuggestionsView extends ItemView {
     });
   }
 
+  /**
+   * Render a row's actions: inline buttons for the ids enabled in settings, plus
+   * a right-click context menu that always exposes every action.
+   */
+  private renderRowActions(row: HTMLElement, container: HTMLElement, actions: RowAction[]) {
+    for (const action of actions) {
+      if (action.inline === false) continue;
+      if (!this.plugin.settings.inlineActions.includes(action.id)) continue;
+      const btn = container.createEl("button", {
+        cls: "enfoliate-action-btn",
+        attr: { "aria-label": action.label },
+      });
+      setIcon(btn, action.icon);
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        void action.run();
+      });
+    }
+
+    row.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      const menu = new Menu();
+      for (const action of actions) {
+        menu.addItem((mi) =>
+          mi.setTitle(action.label).setIcon(action.icon).onClick(() => void action.run())
+        );
+      }
+      menu.showAtMouseEvent(e);
+    });
+  }
+
+  /**
+   * Wrap the given (unlinked) occurrences with wikilinks to linkTarget, working
+   * back-to-front so earlier offsets stay valid. Used to link the remaining
+   * plain-text mentions of an already-linked file.
+   */
+  private async linkPositions(noteFile: TFile, linkTarget: string, positions: MatchPosition[]) {
+    if (positions.length === 0) return;
+    const content = await this.app.vault.read(noteFile);
+    let newContent = content;
+    const sorted = [...positions].sort((a, b) => b.offset - a.offset);
+    for (const p of sorted) {
+      newContent =
+        newContent.substring(0, p.offset) +
+        `[[${linkTarget}|${p.surface}]]` +
+        newContent.substring(p.offset + p.len);
+    }
+    await this.app.vault.modify(noteFile, newContent);
+    const n = positions.length;
+    new Notice(`Linked ${n} ${n > 1 ? "occurrences" : "occurrence"}`);
+    this.refresh();
+  }
+
   private renderUnlinkedMatch(
     container: HTMLElement,
     match: UnlinkedMatch,
@@ -781,52 +848,60 @@ export class SuggestionsView extends ItemView {
       });
     });
 
-    const actions = top.createDiv("enfoliate-suggestion-actions");
+    const actionsEl = top.createDiv("enfoliate-suggestion-actions");
 
-    // Link button (replace first occurrence)
-    const linkBtn = actions.createEl("button", {
-      cls: "enfoliate-action-btn",
-      attr: { "aria-label": "Link" },
-    });
-    setIcon(linkBtn, "replace");
-    linkBtn.addEventListener("click", async () => {
-      await this.linkUnlinkedMatch(match, noteFile, false);
-    });
-
-    // Link all button (if multiple occurrences)
+    const rowActions: RowAction[] = [
+      {
+        id: "link",
+        label: "Link first occurrence",
+        icon: "replace",
+        run: () => this.linkUnlinkedMatch(match, noteFile, false),
+      },
+    ];
     if (match.positions.length > 1) {
-      const linkAllBtn = actions.createEl("button", {
-        cls: "enfoliate-action-btn",
-        attr: { "aria-label": "Link all" },
-      });
-      setIcon(linkAllBtn, "replace-all");
-      linkAllBtn.addEventListener("click", async () => {
-        await this.linkUnlinkedMatch(match, noteFile, true);
+      rowActions.push({
+        id: "linkAll",
+        label: "Link all occurrences",
+        icon: "replace-all",
+        run: () => this.linkUnlinkedMatch(match, noteFile, true),
       });
     }
-
-    // Ignore button (blocklist permanently)
-    const ignoreBtn = actions.createEl("button", {
-      cls: "enfoliate-action-btn",
-      attr: { "aria-label": "Always ignore" },
-    });
-    setIcon(ignoreBtn, "eye-off");
-    ignoreBtn.addEventListener("click", async () => {
-      this.plugin.settings.blocklist.push(match.alias);
-      await this.plugin.saveSettings();
-      this.refresh();
-    });
-
-    // Dismiss button (hide for this session)
-    const dismissBtn = actions.createEl("button", {
-      cls: "enfoliate-dismiss-btn",
-      attr: { "aria-label": "Dismiss" },
-    });
-    setIcon(dismissBtn, "x");
-    dismissBtn.addEventListener("click", () => {
-      this.dismissed.add(match.filePath);
-      this.refresh();
-    });
+    rowActions.push(
+      {
+        id: "open",
+        label: "Open note",
+        icon: "external-link",
+        run: () => this.app.workspace.openLinkText(match.fileName, noteFile.path, false),
+      },
+      {
+        id: "jump",
+        label: "Jump to occurrence",
+        icon: "crosshair",
+        inline: false,
+        run: () =>
+          this.jumpToOccurrence(match.filePath, match.positions, fullContent, noteFile, match.matchText.length),
+      },
+      {
+        id: "ignore",
+        label: "Always ignore",
+        icon: "eye-off",
+        run: async () => {
+          this.plugin.settings.blocklist.push(match.alias);
+          await this.plugin.saveSettings();
+          this.refresh();
+        },
+      },
+      {
+        id: "dismiss",
+        label: "Dismiss",
+        icon: "x",
+        run: () => {
+          this.dismissed.add(match.filePath);
+          this.refresh();
+        },
+      }
+    );
+    this.renderRowActions(row, actionsEl, rowActions);
 
     // Bottom line: metadata
     const meta = row.createDiv("enfoliate-suggestion-meta");
@@ -1035,26 +1110,44 @@ export class SuggestionsView extends ItemView {
 
         const linkedActions = row.createDiv("enfoliate-linked-actions");
 
-        // Go to file button
-        const goBtn = linkedActions.createEl("button", {
-          cls: "enfoliate-go-btn",
-          attr: { "aria-label": "Open taxa file" },
-        });
-        setIcon(goBtn, "external-link");
-        goBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          this.app.workspace.openLinkText(item.link, file.path);
-        });
+        // Plain-text (not-yet-linked) occurrences of this already-linked file.
+        const unlinkedPositions = item.positions.filter((p) => !p.surface.startsWith("[["));
 
-        // Unlink button
-        const unlinkBtn = linkedActions.createEl("button", {
-          cls: "enfoliate-unlink-btn",
-          attr: { "aria-label": "Unlink" },
-        });
-        setIcon(unlinkBtn, "unlink");
-        unlinkBtn.addEventListener("click", async () => {
-          await this.unlinkTaxaFromNote(item.link, item.title, file);
-        });
+        const rowActions: RowAction[] = [];
+        if (unlinkedPositions.length > 0) {
+          rowActions.push({
+            id: "linkUnlinked",
+            label: `Link ${unlinkedPositions.length} unlinked ${unlinkedPositions.length > 1 ? "mentions" : "mention"}`,
+            icon: "replace-all",
+            run: () => this.linkPositions(file, item.link, unlinkedPositions),
+          });
+        }
+        rowActions.push(
+          {
+            id: "open",
+            label: "Open note",
+            icon: "external-link",
+            run: () => this.app.workspace.openLinkText(item.link, file.path, false),
+          },
+          {
+            id: "jump",
+            label: "Jump to occurrence",
+            icon: "crosshair",
+            inline: false,
+            run: () => {
+              if (item.positions.length > 0) {
+                this.jumpToOccurrence(jumpKey, item.positions, content, file, item.matchName.length);
+              }
+            },
+          },
+          {
+            id: "unlink",
+            label: "Unlink",
+            icon: "unlink",
+            run: () => this.unlinkTaxaFromNote(item.link, item.title, file),
+          }
+        );
+        this.renderRowActions(row, linkedActions, rowActions);
       }
     }
 

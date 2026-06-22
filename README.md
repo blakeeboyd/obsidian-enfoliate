@@ -33,10 +33,10 @@ Select text and run **Create taxa link** from the command palette. If the text s
 
 A sidebar panel with two sections for the active note:
 
-- **Linked mentions** — all taxa currently linked in the note, grouped by type. Click a name to jump through occurrences (wikilinks and plain text). Click → to open the taxa file.
+- **Linked mentions** — all taxa currently linked in the note, grouped by type. Click a name to jump through occurrences (wikilinks and plain text). If a linked file still has plain-text mentions, link the remaining ones in one action.
 - **Unlinked mentions** — existing taxa files whose names or aliases appear in your note but aren't linked yet. Link individual mentions or all at once.
 
-The sidebar refreshes on file switch, content edits, and selection changes. Select text to scope the scan to just that selection.
+Right-click any row for its full set of actions (link, open, unlink, ignore, dismiss, …); choose which of those also show as inline buttons under **Sidebar Buttons** in settings. The sidebar refreshes on file switch, content edits, and selection changes.
 
 > **Quote numeric aliases.** YAML reads an unquoted alias like `5.1` or `2024` as a number, not text. Enfoliate ignores non-string aliases so they can't break matching — which also means they won't be searched. Quote them in frontmatter to keep them working as aliases:
 >
@@ -107,6 +107,7 @@ Copy `main.js`, `manifest.json`, and `styles.css` to your vault's `.obsidian/plu
 | Auto-scan | On | Scan the active note automatically; turn off to scan only via the Scan button |
 | Click action | Jump to it in the document | What a click on a sidebar item does: jump, or open in current tab / new tab / new window |
 | Cmd/Ctrl+click action | Open in the current tab | What a modifier-click does: jump, or open in current tab / new tab / new window |
+| Sidebar Buttons | Link, Link all, Link unlinked | Which row actions show as inline buttons; all actions are always available via right-click |
 | Match aliases of linked files | Off | Fold unlinked alias mentions of already-linked files into their Linked Mentions entry |
 | Highlight on jump | On | Flash highlight when jumping to an occurrence |
 | Highlight color | Yellow | Custom color for the jump highlight |

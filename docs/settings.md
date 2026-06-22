@@ -47,6 +47,20 @@ What clicking a taxa name in the sidebar does. Each can jump to the name's next 
 | Click action | Jump to it in the document | What a click on a sidebar item does: jump to its next occurrence, or open the note in the current tab, a new tab, or a new window |
 | Cmd/Ctrl+click action | Open in the current tab | What a Cmd (macOS) / Ctrl (Windows/Linux) + click on a sidebar item does: jump, or open in the current tab, a new tab, or a new window |
 
+## Sidebar Buttons
+
+A toggle per action controls whether it appears as an inline button on sidebar rows. Every action is always available by right-clicking a row, so these toggles only affect the inline buttons (to keep the panel uncluttered). Defaults on: **Link**, **Link all**, **Link unlinked mentions**.
+
+| Action | Default | Where it applies |
+|--------|---------|------------------|
+| Link (first occurrence) | On | Unlinked Mentions |
+| Link all occurrences | On | Unlinked Mentions |
+| Link unlinked mentions | On | Linked Mentions (when a linked file still has plain-text mentions) |
+| Open note | Off | Both sections |
+| Unlink | Off | Linked Mentions |
+| Always ignore | Off | Unlinked Mentions |
+| Dismiss | Off | Unlinked Mentions |
+
 ## Highlighting
 
 Settings for the flash highlight shown when you click a name in the sidebar to jump to its occurrence.
